@@ -1,0 +1,10 @@
+{
+    "chunk_length": 30,
+    "model_variant": "small",
+    "language": "Automatic Detection",
+    "output_format": "srt",
+    "output_directory": "output",
+    "delete_temp_files": true,
+    "translate": false,
+    "target_language": "Dutch"
+}
