@@ -27,6 +27,28 @@ Dependencies include:
 - `openai-whisper` for transcription.
 - `googletrans` for translation.
 
+## Installation
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/TranscribeMonkey.git
+   cd TranscribeMonkey
+   ```
+
+2. **(Optional) Create a virtual environment**:
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 ## Setup
 
 1. **Configure Settings**: Modify `settings.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
@@ -92,19 +114,9 @@ A: Currently, the model download step is not reflected in the progress bar. This
 
 ## TODO
 
-### Transcription Enhancements
-- Implement batch processing to allow users to transcribe multiple files at once.
-- Add more customizable transcription settings, such as output formats and processing modes.
-- Add more advanced audio quality settings for finer control.
-
-### User Interface Improvements
-- Improve GUI layout for a more user-friendly experience.
-- Add model download progress to the progress bar.
-- Improve user feedback during processing for better responsiveness.
-
-### User Experience Features
-- Add error handling for network issues during YouTube download.
-- Implement a feature to pause and resume downloads.
-- Add a logging feature to keep a record of transcriptions and translations.
-- Create a detailed user manual with screenshots.
+- [ ] Batch transcription to process multiple files at once
+- [ ] Display Whisper model download progress in the GUI
+- [ ] Pause and resume downloads and transcriptions
+- [ ] Save a persistent log of completed tasks
+- [ ] Write a detailed user manual with screenshots
 
