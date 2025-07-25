@@ -248,7 +248,9 @@ class TranscribeMonkeyGUI:
         downloader = Downloader(progress_callback=self.update_progress, stop_event=self.stop_event)
         try:
             audio_path = downloader.download_audio(url)
-            self.status_label.config(text="Download complete. Starting transcription...")
+            transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
+            audio_path = transcriber.convert_to_audio(audio_path)
+            self.status_label.config(text="Download and conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0
             self.root.update_idletasks()
@@ -268,7 +270,7 @@ class TranscribeMonkeyGUI:
     def process_file(self, file_path):
         transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
         try:
-            # Convert to mp3 if necessary
+            # Convert to optimal format (16 kHz mono WAV)
             audio_path = transcriber.convert_to_audio(file_path)
             self.status_label.config(text="Conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")

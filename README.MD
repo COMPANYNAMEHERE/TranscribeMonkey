@@ -11,6 +11,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **SRT Formatting**: Generates `.srt` subtitle files for compatibility with video players.
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
 - **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
+- **Automatic Conversion**: Converts input audio to 16 kHz mono WAV for optimal AI analysis.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
@@ -124,7 +125,7 @@ A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings.j
 A: Once processing is complete, the output files are saved in the directory specified under `output_directory` in the settings.
 
 **Q: I get a "Failed to load audio" error. What does it mean?**
-A: The input file may use an unsupported codec. Try converting the file to MP3 or another common format before transcribing.
+A: The app attempts to convert unsupported files to a standard WAV format automatically. If conversion fails, try converting the file manually or ensure FFmpeg is installed.
 
 **Q: Why isn't the progress bar showing the model download progress?**
 A: Currently, the model download step is not reflected in the progress bar. This feature is planned for future updates.

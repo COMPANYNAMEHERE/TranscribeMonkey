@@ -141,16 +141,34 @@ class Transcriber:
 
         return transcripts, detected_language
 
-    def convert_to_audio(self, file_path):
+    def convert_to_audio(self, file_path, out_dir='downloads'):
+        """Convert a media file to 16 kHz mono WAV for Whisper.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the source media file.
+        out_dir : str, optional
+            Directory for the converted file, defaults to ``'downloads'``.
+
+        Returns
+        -------
+        str
+            Path to the converted WAV file.
         """
-        Converts the given audio/video file to MP3 format.
-        """
-        audio_path = os.path.join('downloads', 'temp_audio.mp3')
+        audio_path = os.path.join(out_dir, 'temp_audio.wav')
         try:
             (
                 ffmpeg
                 .input(file_path)
-                .output(audio_path, format='mp3', acodec='libmp3lame', loglevel="error")
+                .output(
+                    audio_path,
+                    format='wav',
+                    acodec='pcm_s16le',
+                    ac=1,
+                    ar=16000,
+                    loglevel='error',
+                )
                 .overwrite_output()
                 .run()
             )
