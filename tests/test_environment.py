@@ -3,10 +3,16 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import settings
-from settings import load_settings, save_settings, DEFAULT_SETTINGS
-from srt_formatter import parse_srt, time_to_seconds, seconds_to_time, format_srt, correct_srt_format
-from translator import Translator
+import src.settings as settings
+from src.settings import load_settings, save_settings, DEFAULT_SETTINGS
+from src.srt_formatter import (
+    parse_srt,
+    time_to_seconds,
+    seconds_to_time,
+    format_srt,
+    correct_srt_format,
+)
+from src.translator import Translator
 
 
 class TestSettings(unittest.TestCase):
@@ -60,7 +66,7 @@ World
 class TestTranslator(unittest.TestCase):
     """Tests for the Translator class using mocks."""
 
-    @patch('translator.GoogleTranslator')
+    @patch('src.translator.GoogleTranslator')
     def test_translate_text(self, mock_google):
         mock_instance = mock_google.return_value
         mock_instance.translate.return_value.text = 'Hola'

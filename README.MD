@@ -90,13 +90,18 @@ python main.py
 
 ## File Structure
 
-- `downloader.py`: Downloads and converts YouTube audio.
-- `transcriber.py`: Handles audio splitting and transcription.
-- `translator.py`: Translates transcriptions.
-- `srt_formatter.py`: Corrects and formats `.srt` subtitles.
-- `gui.py`: Defines the Tkinter GUI.
-- `settings.json`: User configuration file.
-- `utils.py`: Helper functions, including opening output folders.
+- `src/` contains all application modules:
+  - `gui.py` – the Tkinter GUI
+  - `downloader.py` – YouTube audio downloader
+  - `transcriber.py` – audio splitting and Whisper integration
+  - `translator.py` – translation utilities
+  - `srt_formatter.py` – subtitle formatting helpers
+  - `logger.py` – centralized logging setup
+  - `utils.py` – small helper functions
+- `resources/` stores static files such as `icon.png`
+- `tests/` includes unit tests
+- `main.py` is the entry point
+- `settings.json` holds user configuration
 
 ## FAQ / Help
 
@@ -136,7 +141,7 @@ All runtime information and errors are logged to `app.log` in the project root. 
 Run the unit tests to verify core functionality:
 
 ```bash
-python test_environment.py
+python -m unittest discover tests
 ```
 
 The tests mock external services, so they run offline and check settings handling, subtitle formatting, and translation logic.

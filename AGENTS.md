@@ -11,22 +11,25 @@ the following conventions.
 - Add any third‑party packages to `requirements.txt`.
 
 ## Repository Layout
-- All source modules live in the repository root; avoid new directories unless
-  absolutely necessary.
-- Do **not** commit generated content such as `output/`, `downloads/` or
-  `__pycache__/`.
-- GUI logic stays in `gui.py`; download/transcribe/translate logic remains in
-  their respective modules.
+The project uses a simple directory structure:
+
+- `src/` – all application modules (`gui.py`, `downloader.py`, etc.)
+- `tests/` – unit tests
+- `resources/` – static assets like icons
+- `main.py` in the repository root launches the GUI
+
+Do **not** commit generated content such as `output/`, `downloads/` or
+`__pycache__/`.
 
 ## Required Checks
 Before committing run:
 
 ```bash
-python -m py_compile *.py
+python -m py_compile src/*.py main.py
+python -m unittest discover tests
 ```
 
-All files must compile successfully. If additional tests are introduced, run
-those as well.
+All files must compile successfully and the tests should pass.
 
 ## Commit Practices
 - Write concise commit messages.

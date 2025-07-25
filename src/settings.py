@@ -6,7 +6,7 @@ import tempfile
 import tkinter as tk
 from tkinter import filedialog
 
-from logger import get_logger
+from .logger import get_logger
 
 logger = get_logger(__name__)
 

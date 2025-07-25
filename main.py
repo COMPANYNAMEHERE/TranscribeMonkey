@@ -1,6 +1,6 @@
 # main.py
 import tkinter as tk
-from gui import TranscribeMonkeyGUI
+from src.gui import TranscribeMonkeyGUI
 
 def main():
     root = tk.Tk()

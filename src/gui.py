@@ -4,14 +4,14 @@ from tkinter import filedialog, messagebox, ttk
 import threading
 import os
 
-from downloader import Downloader
-from transcriber import Transcriber
-from translator import Translator
-from settings import load_settings, save_settings
-from utils import open_output_folder
+from .downloader import Downloader
+from .transcriber import Transcriber
+from .translator import Translator
+from .settings import load_settings, save_settings
+from .utils import open_output_folder
 from googletrans import LANGUAGES
-from srt_formatter import correct_srt_format  # Importing the SRT formatter
-from logger import get_logger
+from .srt_formatter import correct_srt_format  # Importing the SRT formatter
+from .logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -33,12 +33,13 @@ class TranscribeMonkeyGUI:
         self.root.title("Transcribe Monkey")
 
         # Set window icon
-        # Make sure 'icon.ico' or 'icon.png' is in the same directory as gui.py
+        # Icons are stored in the project's 'resources' folder
         icon_filename_windows = 'icon.ico'
         icon_filename_others = 'icon.png'
-        current_dir = os.path.dirname(__file__)
-        icon_path_windows = os.path.join(current_dir, icon_filename_windows)
-        icon_path_others = os.path.join(current_dir, icon_filename_others)
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        resources_dir = os.path.join(project_root, 'resources')
+        icon_path_windows = os.path.join(resources_dir, icon_filename_windows)
+        icon_path_others = os.path.join(resources_dir, icon_filename_others)
 
         try:
             if os.name == 'nt':  # Windows
