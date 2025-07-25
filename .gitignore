@@ -1,0 +1,26 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+
+# Distribution artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+
+# Generated output
+output/
+downloads/
+
+# OS files
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp

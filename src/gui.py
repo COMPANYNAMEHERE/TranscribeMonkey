@@ -4,13 +4,16 @@ from tkinter import filedialog, messagebox, ttk
 import threading
 import os
 
-from downloader import Downloader
-from transcriber import Transcriber
-from translator import Translator
-from settings import load_settings, save_settings
-from utils import open_output_folder
+from .downloader import Downloader
+from .transcriber import Transcriber
+from .translator import Translator
+from .settings import load_settings, save_settings
+from .utils import open_output_folder
 from googletrans import LANGUAGES
-from srt_formatter import correct_srt_format  # Importing the SRT formatter
+from .srt_formatter import correct_srt_format  # Importing the SRT formatter
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 LANGUAGE_OPTIONS = [('Automatic Detection', 'auto')] + sorted(
     [(name.title(), code) for code, name in LANGUAGES.items()], key=lambda x: x[0]
@@ -30,27 +33,36 @@ class TranscribeMonkeyGUI:
         self.root.title("Transcribe Monkey")
 
         # Set window icon
-        # Make sure 'icon.ico' or 'icon.png' is in the same directory as gui.py
+        # Icons are stored in the project's 'resources' folder
         icon_filename_windows = 'icon.ico'
         icon_filename_others = 'icon.png'
-        current_dir = os.path.dirname(__file__)
-        icon_path_windows = os.path.join(current_dir, icon_filename_windows)
-        icon_path_others = os.path.join(current_dir, icon_filename_others)
+        project_root = os.path.dirname(os.path.dirname(__file__))
+        resources_dir = os.path.join(project_root, 'resources')
+        icon_path_windows = os.path.join(resources_dir, icon_filename_windows)
+        icon_path_others = os.path.join(resources_dir, icon_filename_others)
 
         try:
             if os.name == 'nt':  # Windows
                 if os.path.exists(icon_path_windows):
                     self.root.iconbitmap(icon_path_windows)
                 else:
-                    print(f"Windows icon file '{icon_filename_windows}' not found at {icon_path_windows}. Skipping icon setting.")
+                    logger.warning(
+                        "Windows icon file '%s' not found at %s. Skipping icon setting.",
+                        icon_filename_windows,
+                        icon_path_windows,
+                    )
             else:  # macOS, Linux
                 if os.path.exists(icon_path_others):
                     icon = tk.PhotoImage(file=icon_path_others)
                     self.root.iconphoto(True, icon)
                 else:
-                    print(f"Icon file '{icon_filename_others}' not found at {icon_path_others}. Skipping icon setting.")
+                    logger.warning(
+                        "Icon file '%s' not found at %s. Skipping icon setting.",
+                        icon_filename_others,
+                        icon_path_others,
+                    )
         except Exception as e:
-            print(f"Failed to set window icon: {e}")
+            logger.error("Failed to set window icon: %s", e)
 
     def create_widgets(self):
         # YouTube URL Entry

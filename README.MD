@@ -14,10 +14,16 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 
 Ensure you have Python 3.7 or higher installed on your system. You can find a Python installation guide [here](https://www.python.org/downloads/).
 
-To install dependencies listed in `requirements.txt`:
+To install dependencies listed in `requirements.txt` manually:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Alternatively, run the setup script to automate this process:
+
+```bash
+python setup_env.py
 ```
 
 Dependencies include:
@@ -26,6 +32,28 @@ Dependencies include:
 - `ffmpeg-python` for audio processing.
 - `openai-whisper` for transcription.
 - `googletrans` for translation.
+
+## Installation
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/TranscribeMonkey.git
+   cd TranscribeMonkey
+   ```
+
+2. **Run the setup script** (creates a conda environment and installs dependencies):
+
+   ```bash
+   python setup_env.py
+   ```
+
+3. **Start the program**:
+
+   ```bash
+   conda activate transcribemonkey
+   python main.py
+   ```
 
 ## Setup
 
@@ -62,13 +90,18 @@ python main.py
 
 ## File Structure
 
-- `downloader.py`: Downloads and converts YouTube audio.
-- `transcriber.py`: Handles audio splitting and transcription.
-- `translator.py`: Translates transcriptions.
-- `srt_formatter.py`: Corrects and formats `.srt` subtitles.
-- `gui.py`: Defines the Tkinter GUI.
-- `settings.json`: User configuration file.
-- `utils.py`: Helper functions, including opening output folders.
+- `src/` contains all application modules:
+  - `gui.py` – the Tkinter GUI
+  - `downloader.py` – YouTube audio downloader
+  - `transcriber.py` – audio splitting and Whisper integration
+  - `translator.py` – translation utilities
+  - `srt_formatter.py` – subtitle formatting helpers
+  - `logger.py` – centralized logging setup
+  - `utils.py` – small helper functions
+- `resources/` stores static files such as `icon.png`
+- `tests/` includes unit tests
+- `main.py` is the entry point
+- `settings.json` holds user configuration
 
 ## FAQ / Help
 
@@ -92,19 +125,23 @@ A: Currently, the model download step is not reflected in the progress bar. This
 
 ## TODO
 
-### Transcription Enhancements
-- Implement batch processing to allow users to transcribe multiple files at once.
-- Add more customizable transcription settings, such as output formats and processing modes.
-- Add more advanced audio quality settings for finer control.
+- [ ] Batch transcription to process multiple files at once
+- [ ] Display Whisper model download progress in the GUI
+- [ ] Pause and resume downloads and transcriptions
+- [ ] Save a persistent log of completed tasks
+- [ ] Write a detailed user manual with screenshots
 
-### User Interface Improvements
-- Improve GUI layout for a more user-friendly experience.
-- Add model download progress to the progress bar.
-- Improve user feedback during processing for better responsiveness.
+## Logging
 
-### User Experience Features
-- Add error handling for network issues during YouTube download.
-- Implement a feature to pause and resume downloads.
-- Add a logging feature to keep a record of transcriptions and translations.
-- Create a detailed user manual with screenshots.
+All runtime information and errors are logged to `app.log` in the project root. Check this file when troubleshooting issues.
 
+
+## Testing
+
+Run the unit tests to verify core functionality:
+
+```bash
+python -m unittest discover tests
+```
+
+The tests mock external services, so they run offline and check settings handling, subtitle formatting, and translation logic.

@@ -6,6 +6,10 @@ import tempfile
 import tkinter as tk
 from tkinter import filedialog
 
+from .logger import get_logger
+
+logger = get_logger(__name__)
+
 # Path to the settings file where user configurations are saved
 SETTINGS_FILE = 'settings.json'
 
@@ -30,7 +34,7 @@ def load_settings():
             with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)  # Load settings from the file
         except (json.JSONDecodeError, OSError) as e:
-            print(f"Error reading settings file: {e}. Using default settings.")
+            logger.error("Error reading settings file: %s. Using default settings.", e)
             return DEFAULT_SETTINGS.copy()  # Return default settings if JSON is invalid or there is an OS error
     else:
         return DEFAULT_SETTINGS.copy()  # Return a shallow copy of the default settings if the file is not found
@@ -47,9 +51,9 @@ def save_settings(settings):
         # Rename the temporary file to the target settings file
         os.replace(temp_file_name, SETTINGS_FILE)
     except (OSError, IOError) as e:
-        print(f"Error saving settings to file: {e}")  # Handle file-related errors, such as permissions or disk space issues
+        logger.error("Error saving settings to file: %s", e)
     except TypeError as e:
-        print(f"Error serializing settings: {e}")  # Handle serialization errors if settings contain non-serializable data types
+        logger.error("Error serializing settings: %s", e)
 
 def select_output_directory(settings):
     """
@@ -61,7 +65,7 @@ def select_output_directory(settings):
     if selected_directory:
         settings['output_directory'] = selected_directory
         save_settings(settings)  # Save the updated settings
-        print(f"Output directory set to: {selected_directory}")
+        logger.info("Output directory set to: %s", selected_directory)
     else:
-        print("No directory selected. Keeping the current output directory.")
+        logger.info("No directory selected. Keeping the current output directory.")
 

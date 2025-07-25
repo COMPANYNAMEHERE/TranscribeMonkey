@@ -1,0 +1,1 @@
+"""TranscribeMonkey application package."""
