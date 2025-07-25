@@ -339,6 +339,11 @@ class TranscribeMonkeyGUI:
             # Translate if enabled
             if translator:
                 self.progress['value'] = 0
+                self.status_label.config(text="Translating transcript...")
+                self.eta_lang_label.config(
+                    text=f"Translation Progress: 0% | Language: {detected_language}"
+                )
+                self.root.update_idletasks()
                 for idx, segment in enumerate(transcripts):
                     if self.stop_event.is_set():
                         self.status_label.config(text="Process stopped.")

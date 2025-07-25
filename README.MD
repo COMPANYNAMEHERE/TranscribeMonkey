@@ -10,7 +10,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Translation**: Translate transcriptions into various target languages using Google Translate.
 - **SRT Formatting**: Generates `.srt` subtitle files for compatibility with video players.
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
-- **Detailed Progress**: Shows chunk creation, chunk counts, and translation progress for better feedback.
+- **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
@@ -122,6 +122,9 @@ A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings.j
 
 **Q: Where can I find my output files?**
 A: Once processing is complete, the output files are saved in the directory specified under `output_directory` in the settings.
+
+**Q: I get a "Failed to load audio" error. What does it mean?**
+A: The input file may use an unsupported codec. Try converting the file to MP3 or another common format before transcribing.
 
 **Q: Why isn't the progress bar showing the model download progress?**
 A: Currently, the model download step is not reflected in the progress bar. This feature is planned for future updates.

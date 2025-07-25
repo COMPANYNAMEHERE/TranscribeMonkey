@@ -80,14 +80,25 @@ class Transcriber:
 
         return chunk_paths
 
-    def transcribe_chunks(self, chunk_paths, language=None, progress_callback=None, stop_event=None):
+    def transcribe_chunks(self, chunk_paths, language=None,
+                          progress_callback=None, stop_event=None):
         """Transcribe a list of audio chunks.
 
-        :param chunk_paths: List of paths to audio chunks.
-        :param language: Language code or ``None`` for auto-detection.
-        :param progress_callback: Optional callback receiving progress percent, current chunk index, and total chunks.
-        :param stop_event: Optional ``threading.Event`` to stop processing.
-        :return: Tuple of transcripts list and detected language code.
+        Parameters
+        ----------
+        chunk_paths : list[str]
+            List of paths to audio chunks.
+        language : str | None, optional
+            Language code or ``None`` for auto-detection.
+        progress_callback : callable | None, optional
+            Called with ``(percent, idx, total, stage)`` to report progress.
+        stop_event : threading.Event | None, optional
+            Allows canceling the process mid-way.
+
+        Returns
+        -------
+        tuple[list[dict], str | None]
+            Transcription segments and detected language code.
         """
         transcripts = []
         detected_language = None
@@ -111,11 +122,22 @@ class Transcriber:
 
                 # Update progress
                 if progress_callback:
-                    progress_callback((idx + 1) / total_chunks * 100, idx + 1, total_chunks)
+                    progress_callback(
+                        (idx + 1) / total_chunks * 100,
+                        idx + 1,
+                        total_chunks,
+                        stage="Transcription"
+                    )
 
             except Exception as e:
                 logger.error("Whisper transcription error: %s", e)
-                raise Exception(f"Whisper transcription error: {e}")
+                msg = str(e)
+                if "Failed to load audio" in msg:
+                    msg = (
+                        "Failed to load audio. The file may use an unsupported "
+                        "codec or be corrupted."
+                    )
+                raise Exception(f"Whisper transcription error: {msg}")
 
         return transcripts, detected_language
 
