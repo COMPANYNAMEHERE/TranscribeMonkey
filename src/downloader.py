@@ -17,13 +17,19 @@ class AudioConversionError(DownloaderError):
     pass
 
 class Downloader:
+    """Utility class for downloading YouTube audio."""
+
     def __init__(self, progress_callback=None):
         self.progress_callback = progress_callback
 
     def get_ydl_opts(self, download_path, progress_hook):
-        return {
+        """Return yt-dlp options for downloading a single video's audio."""
+        opts = {
             'format': 'bestaudio/best',
-            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),
+            # Use the video ID as the file name to avoid problems with
+            # special characters in titles causing rename errors
+            'outtmpl': os.path.join(download_path, '%(id)s.%(ext)s'),
+            'restrictfilenames': True,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -35,8 +41,13 @@ class Downloader:
             'ignoreerrors': False,
             'progress_hooks': [progress_hook]  # Attach the progress hook
         }
+        logger.debug("yt-dlp options: %s", opts)
+        return opts
 
     def download_audio(self, url, download_path='downloads', ydl_opts=None):
+        """Download audio from a YouTube URL and return the path to the MP3."""
+        logger.debug("Starting download: url=%s, download_path=%s", url, download_path)
+
         if not os.path.exists(download_path):
             try:
                 os.makedirs(download_path)
@@ -57,6 +68,7 @@ class Downloader:
             ydl_opts = self.get_ydl_opts(download_path, progress_hook)
 
         try:
+            logger.debug("Invoking yt-dlp with options: %s", ydl_opts)
             with YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=True)
                 if info_dict is None:
@@ -64,14 +76,16 @@ class Downloader:
         except (socket.timeout, socket.gaierror) as e:
             logger.error("Network error during download: %s", e)
             raise NetworkError("Network error occurred while trying to download the video.")
-        except Exception as e:
-            logger.error("Unexpected error during download: %s", e)
+        except Exception:
+            logger.exception("Unexpected error during download")
             raise DownloaderError("An unexpected error occurred while trying to download the video.")
 
-        title = info_dict.get('title', 'output')
+        logger.debug("yt-dlp returned info: %s", info_dict)
         audio_filename = ydl.prepare_filename(info_dict)
         audio_path = os.path.splitext(audio_filename)[0] + '.mp3'
-        
+
+        logger.debug("Expected audio path: %s", audio_path)
+
         if not os.path.exists(audio_path):
             raise AudioConversionError("Audio conversion failed.")
 

@@ -5,6 +5,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 ## Features
 
 - **Download Audio from YouTube**: Easily download and save YouTube audio in MP3 format.
+- **Safe Filenames**: Files are saved using the video ID so special characters in titles no longer cause errors.
 - **Transcription**: Transcribe audio using OpenAI's Whisper models for accurate results.
 - **Translation**: Translate transcriptions into various target languages using Google Translate.
 - **SRT Formatting**: Generates `.srt` subtitle files for compatibility with video players.
@@ -134,6 +135,8 @@ A: Currently, the model download step is not reflected in the progress bar. This
 ## Logging
 
 All runtime information and errors are logged to `app.log` in the project root. Check this file when troubleshooting issues.
+Set the environment variable `DEBUG=1` before launching the app to enable
+verbose debug messages in the log.
 
 
 ## Testing
