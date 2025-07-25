@@ -126,6 +126,10 @@ A: Currently, the model download step is not reflected in the progress bar. This
 - [ ] Save a persistent log of completed tasks
 - [ ] Write a detailed user manual with screenshots
 
+## Logging
+
+All runtime information and errors are logged to `app.log` in the project root. Check this file when troubleshooting issues.
+
 
 ## Testing
 

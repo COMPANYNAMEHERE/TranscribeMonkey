@@ -4,6 +4,10 @@ import ffmpeg
 import os
 import warnings
 
+from logger import get_logger
+
+logger = get_logger(__name__)
+
 # Set environment variable to improve CUDA memory handling
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
@@ -22,6 +26,7 @@ class Transcriber:
             probe = ffmpeg.probe(audio_path)
             return float(probe['format']['duration'])
         except ffmpeg.Error as e:
+            logger.error("FFmpeg probe error: %s", e.stderr.decode())
             raise Exception(f"FFmpeg probe error: {e.stderr.decode()}")
 
     def split_audio(self, audio_path, chunk_length=15, download_path='downloads'):  # Decreasing chunk length to reduce memory usage
@@ -46,6 +51,10 @@ class Transcriber:
                 )
                 chunk_paths.append(chunk_filename)
             except ffmpeg.Error as e:
+                logger.error(
+                    "FFmpeg error during chunk extraction: %s",
+                    e.stderr.decode(),
+                )
                 raise Exception(f"FFmpeg error during chunk extraction: {e.stderr.decode()}")
 
         return chunk_paths
@@ -78,6 +87,7 @@ class Transcriber:
                     progress_callback((idx + 1) / total_chunks * 100)
 
             except Exception as e:
+                logger.error("Whisper transcription error: %s", e)
                 raise Exception(f"Whisper transcription error: {e}")
 
         return transcripts, detected_language
@@ -97,5 +107,6 @@ class Transcriber:
             )
             return audio_path
         except ffmpeg.Error as e:
+            logger.error("FFmpeg conversion error: %s", e.stderr.decode())
             raise Exception(f"FFmpeg conversion error: {e.stderr.decode()}")
 

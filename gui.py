@@ -11,6 +11,9 @@ from settings import load_settings, save_settings
 from utils import open_output_folder
 from googletrans import LANGUAGES
 from srt_formatter import correct_srt_format  # Importing the SRT formatter
+from logger import get_logger
+
+logger = get_logger(__name__)
 
 LANGUAGE_OPTIONS = [('Automatic Detection', 'auto')] + sorted(
     [(name.title(), code) for code, name in LANGUAGES.items()], key=lambda x: x[0]
@@ -42,15 +45,23 @@ class TranscribeMonkeyGUI:
                 if os.path.exists(icon_path_windows):
                     self.root.iconbitmap(icon_path_windows)
                 else:
-                    print(f"Windows icon file '{icon_filename_windows}' not found at {icon_path_windows}. Skipping icon setting.")
+                    logger.warning(
+                        "Windows icon file '%s' not found at %s. Skipping icon setting.",
+                        icon_filename_windows,
+                        icon_path_windows,
+                    )
             else:  # macOS, Linux
                 if os.path.exists(icon_path_others):
                     icon = tk.PhotoImage(file=icon_path_others)
                     self.root.iconphoto(True, icon)
                 else:
-                    print(f"Icon file '{icon_filename_others}' not found at {icon_path_others}. Skipping icon setting.")
+                    logger.warning(
+                        "Icon file '%s' not found at %s. Skipping icon setting.",
+                        icon_filename_others,
+                        icon_path_others,
+                    )
         except Exception as e:
-            print(f"Failed to set window icon: {e}")
+            logger.error("Failed to set window icon: %s", e)
 
     def create_widgets(self):
         # YouTube URL Entry
