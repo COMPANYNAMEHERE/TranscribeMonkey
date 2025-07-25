@@ -29,15 +29,30 @@ class Transcriber:
             logger.error("FFmpeg probe error: %s", e.stderr.decode())
             raise Exception(f"FFmpeg probe error: {e.stderr.decode()}")
 
-    def split_audio(self, audio_path, chunk_length=15, download_path='downloads'):  # Decreasing chunk length to reduce memory usage
-        """
-        Splits the audio file into chunks of specified length.
+    def split_audio(self, audio_path, chunk_length=15, download_path='downloads',
+                    progress_callback=None, stop_event=None):  # Decreasing chunk length to reduce memory usage
+        """Split the audio file into chunks of the given length.
+
+        Parameters
+        ----------
+        audio_path : str
+            Path to the source audio file.
+        chunk_length : int, optional
+            Length in seconds for each chunk, by default ``15``.
+        download_path : str, optional
+            Folder where chunk files are stored, by default ``'downloads'``.
+        progress_callback : callable, optional
+            Called with ``(percent, idx, total, stage)`` to report progress.
+        stop_event : threading.Event, optional
+            Event to allow cancellation of the splitting process.
         """
         duration = self.get_audio_duration(audio_path)
         num_chunks = int(duration // chunk_length) + 1
         chunk_paths = []
 
         for i in range(num_chunks):
+            if stop_event and stop_event.is_set():
+                break
             start_time = i * chunk_length
             end_time = min((i + 1) * chunk_length, duration)
             chunk_filename = os.path.join(download_path, f"chunk_{i}.mp3")
@@ -50,6 +65,12 @@ class Transcriber:
                     .run()
                 )
                 chunk_paths.append(chunk_filename)
+
+                if progress_callback:
+                    progress_callback((i + 1) / num_chunks * 100,
+                                     i + 1,
+                                     num_chunks,
+                                     stage="Chunk Creation")
             except ffmpeg.Error as e:
                 logger.error(
                     "FFmpeg error during chunk extraction: %s",

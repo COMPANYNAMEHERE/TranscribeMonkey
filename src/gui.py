@@ -213,8 +213,16 @@ class TranscribeMonkeyGUI:
         chunk_info = ""
         if idx is not None and total is not None:
             chunk_info = f" (Chunk {idx}/{total})"
+
+        if stage == "Transcription":
+            lang_text = "Language: Detecting..."
+        elif stage == "Translation":
+            lang_text = f"Language: {self.settings.get('target_language', 'N/A')}"
+        else:
+            lang_text = "Language: N/A"
+
         self.eta_lang_label.config(
-            text=f"{stage} Progress: {int(percent)}%{chunk_info} | Language: Detecting..."
+            text=f"{stage} Progress: {int(percent)}%{chunk_info} | {lang_text}"
         )
         self.root.update_idletasks()
 
@@ -286,7 +294,16 @@ class TranscribeMonkeyGUI:
         try:
             duration = transcriber.get_audio_duration(audio_path)
             chunk_length = self.settings.get('chunk_length', 30)
-            chunk_paths = transcriber.split_audio(audio_path, chunk_length=chunk_length)
+            self.progress['value'] = 0
+            self.status_label.config(text="Splitting audio into chunks...")
+            self.eta_lang_label.config(text="Chunk Creation Progress: 0% | Language: N/A")
+            self.root.update_idletasks()
+            chunk_paths = transcriber.split_audio(
+                audio_path,
+                chunk_length=chunk_length,
+                progress_callback=self.update_transcription_progress,
+                stop_event=self.stop_event,
+            )
 
             # Determine the language parameter
             selected_language = self.settings.get('language')

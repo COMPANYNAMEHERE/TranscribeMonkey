@@ -10,7 +10,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Translation**: Translate transcriptions into various target languages using Google Translate.
 - **SRT Formatting**: Generates `.srt` subtitle files for compatibility with video players.
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
-- **Detailed Progress**: Shows chunk counts and translation progress for better feedback.
+- **Detailed Progress**: Shows chunk creation, chunk counts, and translation progress for better feedback.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
