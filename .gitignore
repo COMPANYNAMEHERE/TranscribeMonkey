@@ -1,0 +1,12 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# Build and distribution directories
+build/
+dist/
+output/
+
