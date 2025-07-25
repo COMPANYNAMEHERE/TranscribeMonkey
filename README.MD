@@ -126,3 +126,13 @@ A: Currently, the model download step is not reflected in the progress bar. This
 - [ ] Save a persistent log of completed tasks
 - [ ] Write a detailed user manual with screenshots
 
+
+## Testing
+
+Run the unit tests to verify core functionality:
+
+```bash
+python test_environment.py
+```
+
+The tests mock external services, so they run offline and check settings handling, subtitle formatting, and translation logic.
