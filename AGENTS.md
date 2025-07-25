@@ -25,7 +25,7 @@ Do **not** commit generated content such as `output/`, `downloads/` or
 Before committing run:
 
 ```bash
-python -m py_compile src/*.py main.py
+python -m py_compile src/*.py main.py setup_env.py
 python -m unittest discover tests
 ```
 

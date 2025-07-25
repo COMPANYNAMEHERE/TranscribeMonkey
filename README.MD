@@ -14,10 +14,16 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 
 Ensure you have Python 3.7 or higher installed on your system. You can find a Python installation guide [here](https://www.python.org/downloads/).
 
-To install dependencies listed in `requirements.txt`:
+To install dependencies listed in `requirements.txt` manually:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Alternatively, run the setup script to automate this process:
+
+```bash
+python setup_env.py
 ```
 
 Dependencies include:
@@ -36,22 +42,16 @@ Dependencies include:
    cd TranscribeMonkey
    ```
 
-2. **(Optional) Create a virtual environment**:
+2. **Run the setup script** (creates a conda environment and installs dependencies):
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate
+   python setup_env.py
    ```
 
-3. **Install dependencies**:
+3. **Start the program**:
 
    ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Start the program**:
-
-   ```bash
+   conda activate transcribemonkey
    python main.py
    ```
 
