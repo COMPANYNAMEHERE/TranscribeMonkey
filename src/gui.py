@@ -12,6 +12,7 @@ from .utils import open_output_folder
 from googletrans import LANGUAGES
 from .srt_formatter import correct_srt_format  # Importing the SRT formatter
 from .logger import get_logger
+from .progress import format_progress
 
 logger = get_logger(__name__)
 
@@ -210,20 +211,14 @@ class TranscribeMonkeyGUI:
     def update_transcription_progress(self, percent, idx=None, total=None, stage="Transcription"):
         """Update progress information displayed to the user."""
         self.progress['value'] = percent
-        chunk_info = ""
-        if idx is not None and total is not None:
-            chunk_info = f" (Chunk {idx}/{total})"
-
-        if stage == "Transcription":
-            lang_text = "Language: Detecting..."
-        elif stage == "Translation":
-            lang_text = f"Language: {self.settings.get('target_language', 'N/A')}"
-        else:
-            lang_text = "Language: N/A"
-
-        self.eta_lang_label.config(
-            text=f"{stage} Progress: {int(percent)}%{chunk_info} | {lang_text}"
+        msg = format_progress(
+            stage,
+            percent,
+            idx=idx,
+            total=total,
+            target_language=self.settings.get('target_language', 'N/A'),
         )
+        self.eta_lang_label.config(text=msg)
         self.root.update_idletasks()
 
     def start_task(self):
