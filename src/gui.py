@@ -25,6 +25,7 @@ class TranscribeMonkeyGUI:
     def __init__(self, root):
         self.root = root
         self.settings = load_settings()
+        self.stop_event = threading.Event()
         self.setup_window()  # Setup window title and icon
         self.create_widgets()
 
@@ -91,6 +92,10 @@ class TranscribeMonkeyGUI:
         self.progress = ttk.Progressbar(self.root, orient='horizontal', length=400, mode='determinate')
         self.progress.pack(pady=10)
 
+        # Stop Button
+        self.stop_button = tk.Button(self.root, text="Stop", command=self.stop_process, state='disabled')
+        self.stop_button.pack(pady=5)
+
         # Status Label
         self.status_label = tk.Label(self.root, text="")
         self.status_label.pack(pady=5)
@@ -104,6 +109,7 @@ class TranscribeMonkeyGUI:
         if not url:
             messagebox.showwarning("Input Required", "Please enter a YouTube URL.")
             return
+        self.start_task()
         threading.Thread(target=self.process_youtube, args=(url,), daemon=True).start()
 
     def open_file(self):
@@ -112,6 +118,7 @@ class TranscribeMonkeyGUI:
             filetypes=[("Audio Files", "*.mp3 *.wav *.m4a *.flac"), ("Video Files", "*.mp4 *.mkv *.avi *.mov"), ("All Files", "*.*")]
         )
         if file_path:
+            self.start_task()
             threading.Thread(target=self.process_file, args=(file_path,), daemon=True).start()
 
     def open_settings(self):
@@ -200,18 +207,37 @@ class TranscribeMonkeyGUI:
         # Save Button now calls save_local_settings instead of save_settings
         tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=8, column=0, columnspan=2, pady=20)
 
-    def update_transcription_progress(self, percent):
-        """
-        Updates the progress bar and label during transcription.
-        
-        :param percent: Float representing the percentage of transcription completed.
-        """
+    def update_transcription_progress(self, percent, idx=None, total=None, stage="Transcription"):
+        """Update progress information displayed to the user."""
         self.progress['value'] = percent
-        self.eta_lang_label.config(text=f"Transcription Progress: {int(percent)}% | Language: Detecting...")
+        chunk_info = ""
+        if idx is not None and total is not None:
+            chunk_info = f" (Chunk {idx}/{total})"
+        self.eta_lang_label.config(
+            text=f"{stage} Progress: {int(percent)}%{chunk_info} | Language: Detecting..."
+        )
         self.root.update_idletasks()
 
+    def start_task(self):
+        """Prepare UI for a long running task."""
+        self.stop_event.clear()
+        self.stop_button.config(state='normal')
+        self.download_button.config(state='disabled')
+        self.file_button.config(state='disabled')
+
+    def end_task(self):
+        """Reset UI state after task completion."""
+        self.stop_button.config(state='disabled')
+        self.download_button.config(state='normal')
+        self.file_button.config(state='normal')
+
+    def stop_process(self):
+        """Signal running threads to stop."""
+        self.stop_event.set()
+        self.status_label.config(text="Stopping...")
+
     def process_youtube(self, url):
-        downloader = Downloader(progress_callback=self.update_progress)
+        downloader = Downloader(progress_callback=self.update_progress, stop_event=self.stop_event)
         try:
             audio_path = downloader.download_audio(url)
             self.status_label.config(text="Download complete. Starting transcription...")
@@ -221,10 +247,15 @@ class TranscribeMonkeyGUI:
 
             self.transcribe_audio(audio_path, os.path.basename(audio_path))
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to download or process YouTube video:\n{e}")
-            self.status_label.config(text="Failed to download YouTube video.")
+            if self.stop_event.is_set():
+                self.status_label.config(text="Process stopped.")
+            else:
+                messagebox.showerror("Error", f"Failed to download or process YouTube video:\n{e}")
+                self.status_label.config(text="Failed to download YouTube video.")
             self.progress['value'] = 0
             self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
+        finally:
+            self.end_task()
 
     def process_file(self, file_path):
         transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
@@ -238,10 +269,15 @@ class TranscribeMonkeyGUI:
 
             self.transcribe_audio(audio_path, os.path.basename(file_path))
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to process file:\n{e}")
-            self.status_label.config(text="Failed to process file.")
+            if self.stop_event.is_set():
+                self.status_label.config(text="Process stopped.")
+            else:
+                messagebox.showerror("Error", f"Failed to process file:\n{e}")
+                self.status_label.config(text="Failed to process file.")
             self.progress['value'] = 0
             self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
+        finally:
+            self.end_task()
 
     def transcribe_audio(self, audio_path, base_name):
         transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
@@ -269,8 +305,13 @@ class TranscribeMonkeyGUI:
             transcripts, detected_lang_code = transcriber.transcribe_chunks(
                 chunk_paths,
                 language=language,
-                progress_callback=self.update_transcription_progress
+                progress_callback=self.update_transcription_progress,
+                stop_event=self.stop_event
             )
+
+            if self.stop_event.is_set():
+                self.status_label.config(text="Process stopped.")
+                return
 
             # Map detected language code to language name
             if selected_language == 'Automatic Detection' and detected_lang_code:
@@ -280,10 +321,22 @@ class TranscribeMonkeyGUI:
 
             # Translate if enabled
             if translator:
-                for segment in transcripts:
+                self.progress['value'] = 0
+                for idx, segment in enumerate(transcripts):
+                    if self.stop_event.is_set():
+                        self.status_label.config(text="Process stopped.")
+                        return
                     segment['translated_text'] = translator.translate_text(
                         segment['text'],
-                        target_language=LANGUAGE_NAME_TO_CODE.get(self.settings.get('target_language'), 'en')
+                        target_language=LANGUAGE_NAME_TO_CODE.get(
+                            self.settings.get('target_language'), 'en'
+                        )
+                    )
+                    self.update_transcription_progress(
+                        (idx + 1) / len(transcripts) * 100,
+                        idx + 1,
+                        len(transcripts),
+                        stage="Translation",
                     )
 
             # Format transcript
@@ -319,8 +372,11 @@ class TranscribeMonkeyGUI:
                 open_output_folder(output_path)
 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to transcribe audio:\n{e}")
-            self.status_label.config(text="Failed to transcribe audio.")
+            if self.stop_event.is_set():
+                self.status_label.config(text="Process stopped.")
+            else:
+                messagebox.showerror("Error", f"Failed to transcribe audio:\n{e}")
+                self.status_label.config(text="Failed to transcribe audio.")
             self.progress['value'] = 0
             self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
 
@@ -350,6 +406,8 @@ class TranscribeMonkeyGUI:
         
         :param d: Dictionary containing download status information.
         """
+        if self.stop_event.is_set():
+            return
         if d['status'] == 'downloading':
             total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate')
             downloaded_bytes = d.get('downloaded_bytes', 0)

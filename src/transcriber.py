@@ -59,16 +59,22 @@ class Transcriber:
 
         return chunk_paths
 
-    def transcribe_chunks(self, chunk_paths, language=None, progress_callback=None):
-        """
-        Transcribes each audio chunk and detects language if set to automatic.
-        Returns a list of transcripts and the detected language code.
+    def transcribe_chunks(self, chunk_paths, language=None, progress_callback=None, stop_event=None):
+        """Transcribe a list of audio chunks.
+
+        :param chunk_paths: List of paths to audio chunks.
+        :param language: Language code or ``None`` for auto-detection.
+        :param progress_callback: Optional callback receiving progress percent, current chunk index, and total chunks.
+        :param stop_event: Optional ``threading.Event`` to stop processing.
+        :return: Tuple of transcripts list and detected language code.
         """
         transcripts = []
         detected_language = None
         total_chunks = len(chunk_paths)
 
         for idx, chunk in enumerate(chunk_paths):
+            if stop_event and stop_event.is_set():
+                break
             language_param = language  # Already set to None if automatic
 
             try:
@@ -84,7 +90,7 @@ class Transcriber:
 
                 # Update progress
                 if progress_callback:
-                    progress_callback((idx + 1) / total_chunks * 100)
+                    progress_callback((idx + 1) / total_chunks * 100, idx + 1, total_chunks)
 
             except Exception as e:
                 logger.error("Whisper transcription error: %s", e)

@@ -19,8 +19,9 @@ class AudioConversionError(DownloaderError):
 class Downloader:
     """Utility class for downloading YouTube audio."""
 
-    def __init__(self, progress_callback=None):
+    def __init__(self, progress_callback=None, stop_event=None):
         self.progress_callback = progress_callback
+        self.stop_event = stop_event
 
     def get_ydl_opts(self, download_path, progress_hook):
         """Return yt-dlp options for downloading a single video's audio."""
@@ -57,6 +58,8 @@ class Downloader:
         
         # Define the progress hook function
         def progress_hook(d):
+            if self.stop_event and self.stop_event.is_set():
+                raise DownloaderError("Download stopped by user.")
             try:
                 if self.progress_callback:
                     self.progress_callback(d)
