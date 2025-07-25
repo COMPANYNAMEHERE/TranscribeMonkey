@@ -49,6 +49,12 @@ Dependencies include:
    pip install -r requirements.txt
    ```
 
+4. **Start the program**:
+
+   ```bash
+   python main.py
+   ```
+
 ## Setup
 
 1. **Configure Settings**: Modify `settings.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
