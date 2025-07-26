@@ -190,33 +190,81 @@ class TranscribeMonkeyGUI:
         settings_window.geometry("600x550")
         settings_window.resizable(True, True)
 
-        # Chunk Length
-        tk.Label(settings_window, text="Chunk Length (seconds):").grid(row=0, column=0, padx=10, pady=10, sticky='e')
-        chunk_length_var = tk.IntVar(value=self.settings.get('chunk_length', 30))
-        tk.Entry(settings_window, textvariable=chunk_length_var).grid(row=0, column=1, padx=10, pady=10)
+        notebook = ttk.Notebook(settings_window)
+        notebook.pack(fill='both', expand=True, padx=10, pady=10)
 
-        # Model Variant
-        tk.Label(settings_window, text="Whisper Model Variant:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        general_tab = ttk.Frame(notebook)
+        process_tab = ttk.Frame(notebook)
+        output_tab = ttk.Frame(notebook)
+        about_tab = ttk.Frame(notebook)
+
+        notebook.add(general_tab, text='General')
+        notebook.add(process_tab, text='Process')
+        notebook.add(output_tab, text='Output')
+        notebook.add(about_tab, text='About')
+
+        # General Tab Options
+        tk.Label(general_tab, text="Chunk Length (seconds):").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        chunk_length_var = tk.IntVar(value=self.settings.get('chunk_length', 30))
+        tk.Entry(general_tab, textvariable=chunk_length_var).grid(row=0, column=1, padx=10, pady=10)
+
+        tk.Label(general_tab, text="Whisper Model Variant:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
         model_var = tk.StringVar(value=self.settings.get('model_variant', 'base'))
         model_options = ['tiny', 'base', 'small', 'medium', 'large']
-        tk.OptionMenu(settings_window, model_var, *model_options).grid(row=1, column=1, padx=10, pady=10, sticky='w')
+        tk.OptionMenu(general_tab, model_var, *model_options).grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-        # Language
-        tk.Label(settings_window, text="Transcription Language:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+        tk.Label(general_tab, text="Transcription Language:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
         language_var = tk.StringVar(value=self.settings.get('language', 'Automatic Detection'))
         language_names = [name for name, code in LANGUAGE_OPTIONS]
-        language_menu = ttk.Combobox(settings_window, textvariable=language_var, values=language_names, state='readonly')
+        language_menu = ttk.Combobox(general_tab, textvariable=language_var, values=language_names, state='readonly')
         language_menu.grid(row=2, column=1, padx=10, pady=10, sticky='w')
-        language_menu.set(self.settings.get('language', 'Automatic Detection'))  # Set to saved value
+        language_menu.set(self.settings.get('language', 'Automatic Detection'))
 
-        # Output Format
-        tk.Label(settings_window, text="Output Format:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+        tk.Label(general_tab, text="Show System Status:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+        show_status_var = tk.BooleanVar(value=self.settings.get('show_system_status', True))
+        tk.Checkbutton(general_tab, variable=show_status_var).grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+        # Process Tab Options
+        tk.Label(process_tab, text="Normalize Audio:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
+        normalize_var = tk.BooleanVar(value=self.settings.get('normalize_audio', True))
+        tk.Checkbutton(process_tab, variable=normalize_var).grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        tk.Label(process_tab, text="Reduce Noise:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
+        reduce_noise_var = tk.BooleanVar(value=self.settings.get('reduce_noise', False))
+        tk.Checkbutton(process_tab, variable=reduce_noise_var).grid(row=1, column=1, padx=10, pady=10, sticky='w')
+
+        tk.Label(process_tab, text="Trim Silence:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
+        trim_silence_var = tk.BooleanVar(value=self.settings.get('trim_silence', False))
+        tk.Checkbutton(process_tab, variable=trim_silence_var).grid(row=2, column=1, padx=10, pady=10, sticky='w')
+
+        tk.Label(process_tab, text="Enable Translation:").grid(row=3, column=0, padx=10, pady=10, sticky='e')
+        translate_var = tk.BooleanVar(value=self.settings.get('translate', False))
+        target_lang_var = tk.StringVar(value=self.settings.get('target_language', 'English'))
+        translate_check = tk.Checkbutton(process_tab, variable=translate_var)
+        translate_check.grid(row=3, column=1, padx=10, pady=10, sticky='w')
+
+        tk.Label(process_tab, text="Target Language:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+        target_language_names = [name for name, code in LANGUAGE_OPTIONS if code != 'auto']
+        target_lang_menu = ttk.Combobox(process_tab, textvariable=target_lang_var, values=target_language_names, state='disabled')
+        target_lang_menu.grid(row=4, column=1, padx=10, pady=10, sticky='w')
+        target_lang_menu.set(self.settings.get('target_language', 'English'))
+
+        def toggle_translation_options(*_):
+            if translate_var.get():
+                target_lang_menu.config(state='readonly')
+            else:
+                target_lang_menu.config(state='disabled')
+
+        translate_var.trace_add('write', lambda *_: toggle_translation_options())
+        toggle_translation_options()
+
+        # Output Tab Options
+        tk.Label(output_tab, text="Output Format:").grid(row=0, column=0, padx=10, pady=10, sticky='e')
         format_var = tk.StringVar(value=self.settings.get('output_format', 'srt'))
         format_options = ['srt', 'vtt', 'txt']
-        tk.OptionMenu(settings_window, format_var, *format_options).grid(row=3, column=1, padx=10, pady=10, sticky='w')
+        tk.OptionMenu(output_tab, format_var, *format_options).grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
-        # Output Directory
-        tk.Label(settings_window, text="Output Directory:").grid(row=4, column=0, padx=10, pady=10, sticky='e')
+        tk.Label(output_tab, text="Output Directory:").grid(row=1, column=0, padx=10, pady=10, sticky='e')
         output_dir_var = tk.StringVar(value=self.settings.get('output_directory', 'output'))
 
         def select_output_directory():
@@ -224,41 +272,18 @@ class TranscribeMonkeyGUI:
             if selected_directory:
                 output_dir_var.set(selected_directory)
 
-        tk.Button(settings_window, text="Select Folder", command=select_output_directory).grid(row=4, column=1, padx=10, pady=10, sticky='w')
+        tk.Button(output_tab, text="Select Folder", command=select_output_directory).grid(row=1, column=1, padx=10, pady=10, sticky='w')
 
-        # Delete Temporary Files
-        tk.Label(settings_window, text="Delete Temporary Files:").grid(row=5, column=0, padx=10, pady=10, sticky='e')
+        tk.Label(output_tab, text="Delete Temporary Files:").grid(row=2, column=0, padx=10, pady=10, sticky='e')
         delete_temp_var = tk.BooleanVar(value=self.settings.get('delete_temp_files', True))
-        tk.Checkbutton(settings_window, variable=delete_temp_var).grid(row=5, column=1, padx=10, pady=10, sticky='w')
+        tk.Checkbutton(output_tab, variable=delete_temp_var).grid(row=2, column=1, padx=10, pady=10, sticky='w')
 
-        # Translation Settings
-        # Enable Translation
-        tk.Label(settings_window, text="Enable Translation:").grid(row=6, column=0, padx=10, pady=10, sticky='e')
-        translate_var = tk.BooleanVar(value=self.settings.get('translate', False))
-        translate_check = tk.Checkbutton(settings_window, variable=translate_var, command=lambda: toggle_translation_options(translate_var, target_lang_menu))
-        translate_check.grid(row=6, column=1, padx=10, pady=10, sticky='w')
+        # About Tab
+        about_text = (
+            "TranscribeMonkey downloads, processes and transcribes audio files using Whisper."
+        )
+        tk.Label(about_tab, text=about_text, wraplength=500, justify='left').pack(padx=10, pady=10, anchor='w')
 
-        # Target Language
-        tk.Label(settings_window, text="Target Language:").grid(row=7, column=0, padx=10, pady=10, sticky='e')
-        target_lang_var = tk.StringVar(value=self.settings.get('target_language', 'English'))
-        target_language_names = [name for name, code in LANGUAGE_OPTIONS if code != 'auto']
-        target_lang_menu = ttk.Combobox(settings_window, textvariable=target_lang_var, values=target_language_names, state='disabled')
-        target_lang_menu.grid(row=7, column=1, padx=10, pady=10, sticky='w')
-        target_lang_menu.set(self.settings.get('target_language', 'English'))  # Set to saved value
-
-        # Show System Status
-        tk.Label(settings_window, text="Show System Status:").grid(row=8, column=0, padx=10, pady=10, sticky='e')
-        show_status_var = tk.BooleanVar(value=self.settings.get('show_system_status', True))
-        tk.Checkbutton(settings_window, variable=show_status_var).grid(row=8, column=1, padx=10, pady=10, sticky='w')
-
-        # Function to enable/disable target language selection
-        def toggle_translation_options(translate_var, target_lang_menu):
-            if translate_var.get():
-                target_lang_menu.config(state='readonly')
-            else:
-                target_lang_menu.config(state='disabled')
-
-        # Renamed the nested function to avoid conflict
         def save_local_settings():
             old_variant = self.settings.get('model_variant', 'base')
             self.settings['chunk_length'] = chunk_length_var.get()
@@ -270,6 +295,9 @@ class TranscribeMonkeyGUI:
             self.settings['translate'] = translate_var.get()
             self.settings['target_language'] = target_lang_var.get()
             self.settings['show_system_status'] = show_status_var.get()
+            self.settings['normalize_audio'] = normalize_var.get()
+            self.settings['reduce_noise'] = reduce_noise_var.get()
+            self.settings['trim_silence'] = trim_silence_var.get()
             if show_status_var.get():
                 self.status_frame.pack(anchor='ne', pady=5, padx=5)
                 self.check_system_status()
@@ -277,12 +305,11 @@ class TranscribeMonkeyGUI:
                 self.status_frame.pack_forget()
             if self.settings['model_variant'] != old_variant:
                 self.transcriber = None
-            save_settings(self.settings)  # Call the imported save_settings function
+            save_settings(self.settings)
             messagebox.showinfo("Settings Saved", "Settings have been saved successfully.")
             settings_window.destroy()
 
-        # Save Button now calls save_local_settings instead of save_settings
-        tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=9, column=0, columnspan=2, pady=20)
+        tk.Button(settings_window, text="Save Settings", command=save_local_settings).pack(pady=10)
 
     def update_transcription_progress(self, percent, idx=None, total=None, stage="Transcription"):
         """Update progress information displayed to the user."""
@@ -327,7 +354,12 @@ class TranscribeMonkeyGUI:
         try:
             audio_path = downloader.download_audio(url)
             transcriber = self.get_transcriber()
-            audio_path = transcriber.convert_to_audio(audio_path)
+            audio_path = transcriber.convert_to_audio(
+                audio_path,
+                normalize_audio=self.settings.get('normalize_audio', True),
+                reduce_noise=self.settings.get('reduce_noise', False),
+                trim_silence=self.settings.get('trim_silence', False),
+            )
             self.status_label.config(text="Download and conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0
@@ -349,7 +381,12 @@ class TranscribeMonkeyGUI:
         transcriber = self.get_transcriber()
         try:
             # Convert to optimal format (16 kHz mono WAV)
-            audio_path = transcriber.convert_to_audio(file_path)
+            audio_path = transcriber.convert_to_audio(
+                file_path,
+                normalize_audio=self.settings.get('normalize_audio', True),
+                reduce_noise=self.settings.get('reduce_noise', False),
+                trim_silence=self.settings.get('trim_silence', False),
+            )
             self.status_label.config(text="Conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0

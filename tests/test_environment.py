@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import src.settings as settings
-from src.settings import load_settings, save_settings, DEFAULT_SETTINGS
+import src.settings.options as settings
+from src.settings.options import load_settings, save_settings, DEFAULT_SETTINGS
 from src.srt_formatter import (
     parse_srt,
     time_to_seconds,
@@ -20,7 +20,7 @@ class TestSettings(unittest.TestCase):
 
     def test_load_defaults_when_missing(self):
         with tempfile.TemporaryDirectory() as tmp:
-            temp_file = os.path.join(tmp, 'settings.json')
+            temp_file = os.path.join(tmp, 'options.json')
             with patch.object(settings, 'SETTINGS_FILE', temp_file):
                 loaded = load_settings()
                 self.assertEqual(loaded, DEFAULT_SETTINGS)
@@ -28,7 +28,7 @@ class TestSettings(unittest.TestCase):
     def test_save_and_load_settings(self):
         sample_settings = {"chunk_length": 10}
         with tempfile.TemporaryDirectory() as tmp:
-            temp_file = os.path.join(tmp, 'settings.json')
+            temp_file = os.path.join(tmp, 'options.json')
             with patch.object(settings, 'SETTINGS_FILE', temp_file):
                 save_settings(sample_settings)
                 loaded = load_settings()

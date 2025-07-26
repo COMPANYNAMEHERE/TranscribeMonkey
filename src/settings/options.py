@@ -1,17 +1,18 @@
-# settings.py
+"""Load and save user configuration options."""
+
 import json
 import os
-import copy
 import tempfile
 import tkinter as tk
 from tkinter import filedialog
 
-from .logger import get_logger
+from ..logger import get_logger
 
 logger = get_logger(__name__)
 
 # Path to the settings file where user configurations are saved
-SETTINGS_FILE = 'settings.json'
+# Path to the settings file located alongside this module
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'options.json')
 
 # Default settings used if no settings file is found
 DEFAULT_SETTINGS = {
@@ -23,7 +24,10 @@ DEFAULT_SETTINGS = {
     'delete_temp_files': True,  # Whether temporary files should be deleted after processing
     'translate': False,  # Whether to enable translation after transcription
     'target_language': 'English',  # Default target language for translation
-    'show_system_status': True  # Display GPU/Whisper/Translator info in the GUI
+    'show_system_status': True,  # Display GPU/Whisper/Translator info in the GUI
+    'normalize_audio': True,  # Apply volume normalization before transcription
+    'reduce_noise': False,  # Apply basic noise reduction
+    'trim_silence': False  # Trim leading and trailing silence
 }
 
 def load_settings():
@@ -49,7 +53,9 @@ def save_settings(settings):
     """
     try:
         # Use a temporary file to ensure atomic writes
-        with tempfile.NamedTemporaryFile('w', delete=False, dir=os.path.dirname(SETTINGS_FILE), encoding='utf-8') as tmp_file:
+        settings_dir = os.path.dirname(SETTINGS_FILE)
+        os.makedirs(settings_dir, exist_ok=True)
+        with tempfile.NamedTemporaryFile('w', delete=False, dir=settings_dir, encoding='utf-8') as tmp_file:
             json.dump(settings, tmp_file, indent=4)  # Write settings to the temporary file with pretty formatting for readability
             temp_file_name = tmp_file.name
         # Rename the temporary file to the target settings file
