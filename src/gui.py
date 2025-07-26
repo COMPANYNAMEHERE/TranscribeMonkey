@@ -26,6 +26,7 @@ class TranscribeMonkeyGUI:
     def __init__(self, root):
         self.root = root
         self.settings = load_settings()
+        self.transcriber = None
         self.stop_event = threading.Event()
         self.setup_window()  # Setup window title and icon
         self.create_widgets()
@@ -259,6 +260,7 @@ class TranscribeMonkeyGUI:
 
         # Renamed the nested function to avoid conflict
         def save_local_settings():
+            old_variant = self.settings.get('model_variant', 'base')
             self.settings['chunk_length'] = chunk_length_var.get()
             self.settings['model_variant'] = model_var.get()
             self.settings['language'] = language_var.get()
@@ -273,6 +275,8 @@ class TranscribeMonkeyGUI:
                 self.check_system_status()
             else:
                 self.status_frame.pack_forget()
+            if self.settings['model_variant'] != old_variant:
+                self.transcriber = None
             save_settings(self.settings)  # Call the imported save_settings function
             messagebox.showinfo("Settings Saved", "Settings have been saved successfully.")
             settings_window.destroy()
@@ -292,6 +296,13 @@ class TranscribeMonkeyGUI:
         )
         self.eta_lang_label.config(text=msg)
         self.root.update_idletasks()
+
+    def get_transcriber(self):
+        """Return a cached Transcriber instance for the selected model."""
+        model_variant = self.settings.get('model_variant', 'base')
+        if self.transcriber is None or self.transcriber.model_variant != model_variant:
+            self.transcriber = Transcriber(model_variant=model_variant)
+        return self.transcriber
 
     def start_task(self):
         """Prepare UI for a long running task."""
@@ -315,7 +326,7 @@ class TranscribeMonkeyGUI:
         downloader = Downloader(progress_callback=self.update_progress, stop_event=self.stop_event)
         try:
             audio_path = downloader.download_audio(url)
-            transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
+            transcriber = self.get_transcriber()
             audio_path = transcriber.convert_to_audio(audio_path)
             self.status_label.config(text="Download and conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
@@ -335,7 +346,7 @@ class TranscribeMonkeyGUI:
             self.end_task()
 
     def process_file(self, file_path):
-        transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
+        transcriber = self.get_transcriber()
         try:
             # Convert to optimal format (16 kHz mono WAV)
             audio_path = transcriber.convert_to_audio(file_path)
@@ -357,7 +368,7 @@ class TranscribeMonkeyGUI:
             self.end_task()
 
     def transcribe_audio(self, audio_path, base_name):
-        transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
+        transcriber = self.get_transcriber()
         translator = Translator() if self.settings.get('translate', False) else None
 
         try:
