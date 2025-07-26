@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-import src.settings as settings
-from src.settings import load_settings, save_settings, DEFAULT_SETTINGS
+import src.settings.settings as settings
+from src.settings.settings import load_settings, save_settings, DEFAULT_SETTINGS
 from src.srt_formatter import (
     parse_srt,
     time_to_seconds,

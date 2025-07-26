@@ -12,6 +12,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
 - **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
 - **Automatic Conversion**: Converts input audio to 16 kHz mono WAV for optimal AI analysis.
+- **Audio Preprocessing**: Optional normalization, noise reduction, and silence trimming.
 - **System Status**: Window focuses on launch and, when enabled, shows CUDA, Whisper model, and translation availability. The Whisper indicator turns red if the selected model is not installed.
 - **Resizable Settings**: The settings window is larger and can be resized so all options fit comfortably.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
@@ -63,7 +64,7 @@ Dependencies include:
 
 ## Setup
 
-1. **Configure Settings**: Modify `settings.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
+1. **Configure Settings**: Modify `settings/settings.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
 
    - **General Settings**:
      - `chunk_length`: Length of audio chunks in seconds.
@@ -108,21 +109,21 @@ python main.py
 - `resources/` stores static files such as `icon.png`
 - `tests/` includes unit tests
 - `main.py` is the entry point
-- `settings.json` holds user configuration
+- `settings/settings.json` holds user configuration
 
 ## FAQ / Help
 
 **Q: How do I change the output file format?**
-A: Modify the `output_format` field in `settings.json` to change the output file format. Supported formats are `srt`, `vtt`, and `txt`.
+A: Modify the `output_format` field in `settings/settings.json` to change the output file format. Supported formats are `srt`, `vtt`, and `txt`.
 
 **Q: The app is not detecting my audio language correctly. What should I do?**
-A: Specify the correct language in the `language` setting under `settings.json`. If set to "Automatic Detection", Whisper will attempt to detect the language, but specifying it can improve accuracy.
+A: Specify the correct language in the `language` setting under `settings/settings.json`. If set to "Automatic Detection", Whisper will attempt to detect the language, but specifying it can improve accuracy.
 
 **Q: What should I do if my output directory is inaccessible?**
-A: Ensure that the output directory specified in `settings.json` exists and that you have the necessary permissions to write to it.
+A: Ensure that the output directory specified in `settings/settings.json` exists and that you have the necessary permissions to write to it.
 
 **Q: Can I use a different Whisper model variant?**
-A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings.json` under `model_variant` to suit your needs.
+A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings/settings.json` under `model_variant` to suit your needs.
 
 **Q: Where can I find my output files?**
 A: Once processing is complete, the output files are saved in the directory specified under `output_directory` in the settings.

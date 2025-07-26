@@ -142,8 +142,16 @@ class Transcriber:
 
         return transcripts, detected_language
 
-    def convert_to_audio(self, file_path, out_dir='downloads'):
-        """Convert a media file to 16 kHz mono WAV for Whisper.
+    def convert_to_audio(
+        self,
+        file_path,
+        out_dir='downloads',
+        *,
+        normalize_audio=True,
+        reduce_noise=False,
+        trim_silence=False,
+    ):
+        """Convert a media file to 16 kHz mono WAV for Whisper with preprocessing.
 
         Parameters
         ----------
@@ -159,10 +167,19 @@ class Transcriber:
         """
         audio_path = os.path.join(out_dir, 'temp_audio.wav')
         try:
+            stream = ffmpeg.input(file_path)
+            if normalize_audio:
+                stream = stream.filter('loudnorm')
+            if reduce_noise:
+                stream = stream.filter('afftdn')
+            if trim_silence:
+                stream = stream.filter(
+                    'silenceremove',
+                    start_periods=1,
+                    start_threshold='-50dB',
+                )
             (
-                ffmpeg
-                .input(file_path)
-                .output(
+                stream.output(
                     audio_path,
                     format='wav',
                     acodec='pcm_s16le',
