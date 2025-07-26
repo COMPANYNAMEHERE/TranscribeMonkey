@@ -3,8 +3,8 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-from .settings import save_settings
-from ..logger import get_logger
+from src.settings.settings import save_settings
+from src.logger import get_logger
 
 # Recompute language options locally to avoid circular import
 try:

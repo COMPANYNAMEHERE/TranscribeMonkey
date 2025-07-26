@@ -5,14 +5,14 @@ from unittest.mock import patch
 
 import src.settings.settings as settings
 from src.settings.settings import load_settings, save_settings, DEFAULT_SETTINGS
-from src.srt_formatter import (
+from processor.srt_formatter import (
     parse_srt,
     time_to_seconds,
     seconds_to_time,
     format_srt,
     correct_srt_format,
 )
-from src.translator import Translator
+from processor.translator import Translator
 
 
 class TestSettings(unittest.TestCase):
@@ -66,7 +66,7 @@ World
 class TestTranslator(unittest.TestCase):
     """Tests for the Translator class using mocks."""
 
-    @patch('src.translator.GoogleTranslator')
+    @patch('processor.translator.GoogleTranslator')
     def test_translate_text(self, mock_google):
         mock_instance = mock_google.return_value
         mock_instance.translate.return_value.text = 'Hola'

@@ -3,7 +3,7 @@
 import re
 from datetime import timedelta
 
-from .logger import get_logger
+from src.logger import get_logger
 
 logger = get_logger(__name__)
 

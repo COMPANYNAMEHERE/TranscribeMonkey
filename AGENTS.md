@@ -13,7 +13,9 @@ the following conventions.
 ## Repository Layout
 The project uses a simple directory structure:
 
-- `src/` – all application modules (`gui.py`, `downloader.py`, etc.)
+- `src/` – core utilities
+- `gui/` – Tkinter interface modules
+- `processor/` – transcription and translation logic
 - `tests/` – unit tests
 - `resources/` – static assets like icons
 - `main.py` in the repository root launches the GUI
@@ -25,7 +27,7 @@ Do **not** commit generated content such as `output/`, `downloads/` or
 Before committing run:
 
 ```bash
-python -m py_compile src/*.py main.py setup_env.py
+python -m py_compile src/*.py gui/*.py processor/*.py main.py setup_env.py
 python -m unittest discover tests
 ```
 
@@ -33,5 +35,4 @@ All files must compile successfully and the tests should pass.
 
 ## Commit Practices
 - Write concise commit messages.
-- Update `README.MD` when user-facing behavior changes.
 - Never commit API keys or personal settings.
