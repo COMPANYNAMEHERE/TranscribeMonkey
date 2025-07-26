@@ -12,7 +12,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
 - **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
 - **Automatic Conversion**: Converts input audio to 16 kHz mono WAV for optimal AI analysis.
-- **System Status**: Window focuses on launch and shows CUDA, Whisper, and translation availability.
+- **System Status**: Window focuses on launch and, when enabled, shows CUDA, Whisper model, and translation availability. The Whisper indicator turns red if the selected model is not installed.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
@@ -67,7 +67,8 @@ Dependencies include:
    - **General Settings**:
      - `chunk_length`: Length of audio chunks in seconds.
      - `model_variant`: Whisper model to use (e.g., `tiny`, `base`, `large`).
-     - `delete_temp_files`: Whether to delete temporary files after processing.
+   - `delete_temp_files`: Whether to delete temporary files after processing.
+   - `show_system_status`: Toggle display of GPU, Whisper, and translator availability.
 
    - **Language Options**:
      - `language`: Language for transcription or set to "Automatic Detection".

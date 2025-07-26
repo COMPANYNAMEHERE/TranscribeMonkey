@@ -8,7 +8,7 @@ from .downloader import Downloader
 from .transcriber import Transcriber
 from .translator import Translator
 from .settings import load_settings, save_settings
-from .utils import open_output_folder
+from .utils import open_output_folder, is_whisper_model_installed
 from googletrans import LANGUAGES
 from .srt_formatter import correct_srt_format  # Importing the SRT formatter
 from .logger import get_logger
@@ -79,7 +79,8 @@ class TranscribeMonkeyGUI:
         """Create and layout all widgets in the main window."""
         # Status indicators at the top right
         self.status_frame = tk.Frame(self.root)
-        self.status_frame.pack(anchor='ne', pady=5, padx=5)
+        if self.settings.get('show_system_status', True):
+            self.status_frame.pack(anchor='ne', pady=5, padx=5)
         self.cuda_status = tk.Label(self.status_frame, text="")
         self.cuda_status.pack(side='right', padx=5)
         self.translate_status = tk.Label(self.status_frame, text="")
@@ -139,11 +140,16 @@ class TranscribeMonkeyGUI:
             cuda_text = "No CUDA"
         self.cuda_status.config(text=cuda_text, fg=cuda_color)
 
-        # Whisper installation
+        # Whisper model availability
+        model_variant = self.settings.get('model_variant', 'base')
         try:
             import whisper  # noqa: F401
-            color = "green"
-            text = f"Whisper ({self.settings.get('model_variant', 'base')})"
+            if is_whisper_model_installed(model_variant):
+                color = "green"
+                text = f"Whisper ({model_variant})"
+            else:
+                color = "red"
+                text = f"Whisper ({model_variant}) Missing"
         except Exception:
             color = "red"
             text = "Whisper Missing"
@@ -239,6 +245,11 @@ class TranscribeMonkeyGUI:
         target_lang_menu.grid(row=7, column=1, padx=10, pady=10, sticky='w')
         target_lang_menu.set(self.settings.get('target_language', 'English'))  # Set to saved value
 
+        # Show System Status
+        tk.Label(settings_window, text="Show System Status:").grid(row=8, column=0, padx=10, pady=10, sticky='e')
+        show_status_var = tk.BooleanVar(value=self.settings.get('show_system_status', True))
+        tk.Checkbutton(settings_window, variable=show_status_var).grid(row=8, column=1, padx=10, pady=10, sticky='w')
+
         # Function to enable/disable target language selection
         def toggle_translation_options(translate_var, target_lang_menu):
             if translate_var.get():
@@ -256,12 +267,18 @@ class TranscribeMonkeyGUI:
             self.settings['delete_temp_files'] = delete_temp_var.get()
             self.settings['translate'] = translate_var.get()
             self.settings['target_language'] = target_lang_var.get()
+            self.settings['show_system_status'] = show_status_var.get()
+            if show_status_var.get():
+                self.status_frame.pack(anchor='ne', pady=5, padx=5)
+                self.check_system_status()
+            else:
+                self.status_frame.pack_forget()
             save_settings(self.settings)  # Call the imported save_settings function
             messagebox.showinfo("Settings Saved", "Settings have been saved successfully.")
             settings_window.destroy()
 
         # Save Button now calls save_local_settings instead of save_settings
-        tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=8, column=0, columnspan=2, pady=20)
+        tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=9, column=0, columnspan=2, pady=20)
 
     def update_transcription_progress(self, percent, idx=None, total=None, stage="Transcription"):
         """Update progress information displayed to the user."""

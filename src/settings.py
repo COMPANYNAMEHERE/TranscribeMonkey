@@ -22,7 +22,8 @@ DEFAULT_SETTINGS = {
     'output_directory': 'output',  # Directory where output files will be saved
     'delete_temp_files': True,  # Whether temporary files should be deleted after processing
     'translate': False,  # Whether to enable translation after transcription
-    'target_language': 'English'  # Default target language for translation
+    'target_language': 'English',  # Default target language for translation
+    'show_system_status': True  # Display GPU/Whisper/Translator info in the GUI
 }
 
 def load_settings():
@@ -32,7 +33,10 @@ def load_settings():
     if os.path.exists(SETTINGS_FILE):  # Check if the settings file exists
         try:
             with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)  # Load settings from the file
+                data = json.load(f)
+                merged = DEFAULT_SETTINGS.copy()
+                merged.update(data)
+                return merged
         except (json.JSONDecodeError, OSError) as e:
             logger.error("Error reading settings file: %s. Using default settings.", e)
             return DEFAULT_SETTINGS.copy()  # Return default settings if JSON is invalid or there is an OS error
