@@ -4,15 +4,15 @@ from tkinter import filedialog, messagebox, ttk
 import threading
 import os
 
-from .downloader import Downloader
-from .transcriber import Transcriber
-from .translator import Translator
-from .settings import load_settings
-from .settings.settings_gui import open_settings as open_settings_window
-from .utils import open_output_folder, is_whisper_model_installed
+from processor.downloader import Downloader
+from processor.transcriber import Transcriber
+from processor.translator import Translator
+from src.settings import load_settings
+from gui.settings_gui import open_settings as open_settings_window
+from src.utils import open_output_folder, is_whisper_model_installed
 from googletrans import LANGUAGES
-from .srt_formatter import correct_srt_format  # Importing the SRT formatter
-from .logger import get_logger
+from processor.srt_formatter import correct_srt_format
+from src.logger import get_logger
 from .progress import format_progress
 
 logger = get_logger(__name__)
