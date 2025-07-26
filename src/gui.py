@@ -186,8 +186,8 @@ class TranscribeMonkeyGUI:
     def open_settings(self):
         settings_window = tk.Toplevel(self.root)
         settings_window.title("Settings")
-        settings_window.geometry("500x450")
-        settings_window.resizable(False, False)
+        settings_window.geometry("600x550")
+        settings_window.resizable(True, True)
 
         # Chunk Length
         tk.Label(settings_window, text="Chunk Length (seconds):").grid(row=0, column=0, padx=10, pady=10, sticky='e')
