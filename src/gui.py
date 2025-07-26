@@ -29,6 +29,15 @@ class TranscribeMonkeyGUI:
         self.stop_event = threading.Event()
         self.setup_window()  # Setup window title and icon
         self.create_widgets()
+        self.check_system_status()
+        # Bring window to the front on launch
+        try:
+            self.root.lift()
+            self.root.attributes('-topmost', True)
+            self.root.after(100, lambda: self.root.attributes('-topmost', False))
+            self.root.focus_force()
+        except Exception as e:
+            logger.debug("Failed to set focus: %s", e)
 
     def setup_window(self):
         # Set window title
@@ -67,6 +76,17 @@ class TranscribeMonkeyGUI:
             logger.error("Failed to set window icon: %s", e)
 
     def create_widgets(self):
+        """Create and layout all widgets in the main window."""
+        # Status indicators at the top right
+        self.status_frame = tk.Frame(self.root)
+        self.status_frame.pack(anchor='ne', pady=5, padx=5)
+        self.cuda_status = tk.Label(self.status_frame, text="")
+        self.cuda_status.pack(side='right', padx=5)
+        self.translate_status = tk.Label(self.status_frame, text="")
+        self.translate_status.pack(side='right', padx=5)
+        self.whisper_status = tk.Label(self.status_frame, text="")
+        self.whisper_status.pack(side='right', padx=5)
+
         # YouTube URL Entry
         self.url_label = tk.Label(self.root, text="Enter YouTube URL:")
         self.url_label.pack(pady=(10, 0))
@@ -104,6 +124,41 @@ class TranscribeMonkeyGUI:
         # ETA and Language Label
         self.eta_lang_label = tk.Label(self.root, text="ETA: N/A | Language: N/A")
         self.eta_lang_label.pack(pady=(0, 10))
+
+    def check_system_status(self):
+        """Update status indicators for CUDA, Whisper, and translation."""
+        # CUDA availability
+        cuda_color = "green"
+        try:
+            import torch
+            cuda_available = torch.cuda.is_available()
+            cuda_color = "green" if cuda_available else "yellow"
+            cuda_text = "CUDA" if cuda_available else "CPU"
+        except Exception:
+            cuda_color = "yellow"
+            cuda_text = "No CUDA"
+        self.cuda_status.config(text=cuda_text, fg=cuda_color)
+
+        # Whisper installation
+        try:
+            import whisper  # noqa: F401
+            color = "green"
+            text = f"Whisper ({self.settings.get('model_variant', 'base')})"
+        except Exception:
+            color = "red"
+            text = "Whisper Missing"
+        self.whisper_status.config(text=text, fg=color)
+
+        # Google Translate availability
+        translate_required = self.settings.get('translate', False)
+        try:
+            import googletrans  # noqa: F401
+            color = "green"
+            text = "Translator"
+        except Exception:
+            color = "red" if translate_required else "yellow"
+            text = "Translator Missing"
+        self.translate_status.config(text=text, fg=color)
 
     def download_from_youtube(self):
         url = self.url_entry.get().strip()

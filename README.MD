@@ -12,6 +12,7 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
 - **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
 - **Automatic Conversion**: Converts input audio to 16 kHz mono WAV for optimal AI analysis.
+- **System Status**: Window focuses on launch and shows CUDA, Whisper, and translation availability.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
