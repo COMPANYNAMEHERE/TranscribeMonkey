@@ -8,10 +8,11 @@ from .downloader import Downloader
 from .transcriber import Transcriber
 from .translator import Translator
 from .settings import load_settings, save_settings
-from .utils import open_output_folder
+from .utils import open_output_folder, is_whisper_model_installed
 from googletrans import LANGUAGES
 from .srt_formatter import correct_srt_format  # Importing the SRT formatter
 from .logger import get_logger
+from .progress import format_progress
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,15 @@ class TranscribeMonkeyGUI:
         self.stop_event = threading.Event()
         self.setup_window()  # Setup window title and icon
         self.create_widgets()
+        self.check_system_status()
+        # Bring window to the front on launch
+        try:
+            self.root.lift()
+            self.root.attributes('-topmost', True)
+            self.root.after(100, lambda: self.root.attributes('-topmost', False))
+            self.root.focus_force()
+        except Exception as e:
+            logger.debug("Failed to set focus: %s", e)
 
     def setup_window(self):
         # Set window title
@@ -66,6 +76,18 @@ class TranscribeMonkeyGUI:
             logger.error("Failed to set window icon: %s", e)
 
     def create_widgets(self):
+        """Create and layout all widgets in the main window."""
+        # Status indicators at the top right
+        self.status_frame = tk.Frame(self.root)
+        if self.settings.get('show_system_status', True):
+            self.status_frame.pack(anchor='ne', pady=5, padx=5)
+        self.cuda_status = tk.Label(self.status_frame, text="")
+        self.cuda_status.pack(side='right', padx=5)
+        self.translate_status = tk.Label(self.status_frame, text="")
+        self.translate_status.pack(side='right', padx=5)
+        self.whisper_status = tk.Label(self.status_frame, text="")
+        self.whisper_status.pack(side='right', padx=5)
+
         # YouTube URL Entry
         self.url_label = tk.Label(self.root, text="Enter YouTube URL:")
         self.url_label.pack(pady=(10, 0))
@@ -104,6 +126,46 @@ class TranscribeMonkeyGUI:
         self.eta_lang_label = tk.Label(self.root, text="ETA: N/A | Language: N/A")
         self.eta_lang_label.pack(pady=(0, 10))
 
+    def check_system_status(self):
+        """Update status indicators for CUDA, Whisper, and translation."""
+        # CUDA availability
+        cuda_color = "green"
+        try:
+            import torch
+            cuda_available = torch.cuda.is_available()
+            cuda_color = "green" if cuda_available else "yellow"
+            cuda_text = "CUDA" if cuda_available else "CPU"
+        except Exception:
+            cuda_color = "yellow"
+            cuda_text = "No CUDA"
+        self.cuda_status.config(text=cuda_text, fg=cuda_color)
+
+        # Whisper model availability
+        model_variant = self.settings.get('model_variant', 'base')
+        try:
+            import whisper  # noqa: F401
+            if is_whisper_model_installed(model_variant):
+                color = "green"
+                text = f"Whisper ({model_variant})"
+            else:
+                color = "red"
+                text = f"Whisper ({model_variant}) Missing"
+        except Exception:
+            color = "red"
+            text = "Whisper Missing"
+        self.whisper_status.config(text=text, fg=color)
+
+        # Google Translate availability
+        translate_required = self.settings.get('translate', False)
+        try:
+            import googletrans  # noqa: F401
+            color = "green"
+            text = "Translator"
+        except Exception:
+            color = "red" if translate_required else "yellow"
+            text = "Translator Missing"
+        self.translate_status.config(text=text, fg=color)
+
     def download_from_youtube(self):
         url = self.url_entry.get().strip()
         if not url:
@@ -124,8 +186,8 @@ class TranscribeMonkeyGUI:
     def open_settings(self):
         settings_window = tk.Toplevel(self.root)
         settings_window.title("Settings")
-        settings_window.geometry("500x450")
-        settings_window.resizable(False, False)
+        settings_window.geometry("600x550")
+        settings_window.resizable(True, True)
 
         # Chunk Length
         tk.Label(settings_window, text="Chunk Length (seconds):").grid(row=0, column=0, padx=10, pady=10, sticky='e')
@@ -183,6 +245,11 @@ class TranscribeMonkeyGUI:
         target_lang_menu.grid(row=7, column=1, padx=10, pady=10, sticky='w')
         target_lang_menu.set(self.settings.get('target_language', 'English'))  # Set to saved value
 
+        # Show System Status
+        tk.Label(settings_window, text="Show System Status:").grid(row=8, column=0, padx=10, pady=10, sticky='e')
+        show_status_var = tk.BooleanVar(value=self.settings.get('show_system_status', True))
+        tk.Checkbutton(settings_window, variable=show_status_var).grid(row=8, column=1, padx=10, pady=10, sticky='w')
+
         # Function to enable/disable target language selection
         def toggle_translation_options(translate_var, target_lang_menu):
             if translate_var.get():
@@ -200,22 +267,30 @@ class TranscribeMonkeyGUI:
             self.settings['delete_temp_files'] = delete_temp_var.get()
             self.settings['translate'] = translate_var.get()
             self.settings['target_language'] = target_lang_var.get()
+            self.settings['show_system_status'] = show_status_var.get()
+            if show_status_var.get():
+                self.status_frame.pack(anchor='ne', pady=5, padx=5)
+                self.check_system_status()
+            else:
+                self.status_frame.pack_forget()
             save_settings(self.settings)  # Call the imported save_settings function
             messagebox.showinfo("Settings Saved", "Settings have been saved successfully.")
             settings_window.destroy()
 
         # Save Button now calls save_local_settings instead of save_settings
-        tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=8, column=0, columnspan=2, pady=20)
+        tk.Button(settings_window, text="Save Settings", command=save_local_settings).grid(row=9, column=0, columnspan=2, pady=20)
 
     def update_transcription_progress(self, percent, idx=None, total=None, stage="Transcription"):
         """Update progress information displayed to the user."""
         self.progress['value'] = percent
-        chunk_info = ""
-        if idx is not None and total is not None:
-            chunk_info = f" (Chunk {idx}/{total})"
-        self.eta_lang_label.config(
-            text=f"{stage} Progress: {int(percent)}%{chunk_info} | Language: Detecting..."
+        msg = format_progress(
+            stage,
+            percent,
+            idx=idx,
+            total=total,
+            target_language=self.settings.get('target_language', 'N/A'),
         )
+        self.eta_lang_label.config(text=msg)
         self.root.update_idletasks()
 
     def start_task(self):
@@ -240,7 +315,9 @@ class TranscribeMonkeyGUI:
         downloader = Downloader(progress_callback=self.update_progress, stop_event=self.stop_event)
         try:
             audio_path = downloader.download_audio(url)
-            self.status_label.config(text="Download complete. Starting transcription...")
+            transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
+            audio_path = transcriber.convert_to_audio(audio_path)
+            self.status_label.config(text="Download and conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0
             self.root.update_idletasks()
@@ -260,7 +337,7 @@ class TranscribeMonkeyGUI:
     def process_file(self, file_path):
         transcriber = Transcriber(model_variant=self.settings.get('model_variant', 'base'))
         try:
-            # Convert to mp3 if necessary
+            # Convert to optimal format (16 kHz mono WAV)
             audio_path = transcriber.convert_to_audio(file_path)
             self.status_label.config(text="Conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
@@ -286,7 +363,16 @@ class TranscribeMonkeyGUI:
         try:
             duration = transcriber.get_audio_duration(audio_path)
             chunk_length = self.settings.get('chunk_length', 30)
-            chunk_paths = transcriber.split_audio(audio_path, chunk_length=chunk_length)
+            self.progress['value'] = 0
+            self.status_label.config(text="Splitting audio into chunks...")
+            self.eta_lang_label.config(text="Chunk Creation Progress: 0% | Language: N/A")
+            self.root.update_idletasks()
+            chunk_paths = transcriber.split_audio(
+                audio_path,
+                chunk_length=chunk_length,
+                progress_callback=self.update_transcription_progress,
+                stop_event=self.stop_event,
+            )
 
             # Determine the language parameter
             selected_language = self.settings.get('language')
@@ -322,6 +408,11 @@ class TranscribeMonkeyGUI:
             # Translate if enabled
             if translator:
                 self.progress['value'] = 0
+                self.status_label.config(text="Translating transcript...")
+                self.eta_lang_label.config(
+                    text=f"Translation Progress: 0% | Language: {detected_language}"
+                )
+                self.root.update_idletasks()
                 for idx, segment in enumerate(transcripts):
                     if self.stop_event.is_set():
                         self.status_label.config(text="Process stopped.")

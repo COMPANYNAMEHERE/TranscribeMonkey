@@ -29,15 +29,30 @@ class Transcriber:
             logger.error("FFmpeg probe error: %s", e.stderr.decode())
             raise Exception(f"FFmpeg probe error: {e.stderr.decode()}")
 
-    def split_audio(self, audio_path, chunk_length=15, download_path='downloads'):  # Decreasing chunk length to reduce memory usage
-        """
-        Splits the audio file into chunks of specified length.
+    def split_audio(self, audio_path, chunk_length=15, download_path='downloads',
+                    progress_callback=None, stop_event=None):  # Decreasing chunk length to reduce memory usage
+        """Split the audio file into chunks of the given length.
+
+        Parameters
+        ----------
+        audio_path : str
+            Path to the source audio file.
+        chunk_length : int, optional
+            Length in seconds for each chunk, by default ``15``.
+        download_path : str, optional
+            Folder where chunk files are stored, by default ``'downloads'``.
+        progress_callback : callable, optional
+            Called with ``(percent, idx, total, stage)`` to report progress.
+        stop_event : threading.Event, optional
+            Event to allow cancellation of the splitting process.
         """
         duration = self.get_audio_duration(audio_path)
         num_chunks = int(duration // chunk_length) + 1
         chunk_paths = []
 
         for i in range(num_chunks):
+            if stop_event and stop_event.is_set():
+                break
             start_time = i * chunk_length
             end_time = min((i + 1) * chunk_length, duration)
             chunk_filename = os.path.join(download_path, f"chunk_{i}.mp3")
@@ -50,6 +65,12 @@ class Transcriber:
                     .run()
                 )
                 chunk_paths.append(chunk_filename)
+
+                if progress_callback:
+                    progress_callback((i + 1) / num_chunks * 100,
+                                     i + 1,
+                                     num_chunks,
+                                     stage="Chunk Creation")
             except ffmpeg.Error as e:
                 logger.error(
                     "FFmpeg error during chunk extraction: %s",
@@ -59,14 +80,25 @@ class Transcriber:
 
         return chunk_paths
 
-    def transcribe_chunks(self, chunk_paths, language=None, progress_callback=None, stop_event=None):
+    def transcribe_chunks(self, chunk_paths, language=None,
+                          progress_callback=None, stop_event=None):
         """Transcribe a list of audio chunks.
 
-        :param chunk_paths: List of paths to audio chunks.
-        :param language: Language code or ``None`` for auto-detection.
-        :param progress_callback: Optional callback receiving progress percent, current chunk index, and total chunks.
-        :param stop_event: Optional ``threading.Event`` to stop processing.
-        :return: Tuple of transcripts list and detected language code.
+        Parameters
+        ----------
+        chunk_paths : list[str]
+            List of paths to audio chunks.
+        language : str | None, optional
+            Language code or ``None`` for auto-detection.
+        progress_callback : callable | None, optional
+            Called with ``(percent, idx, total, stage)`` to report progress.
+        stop_event : threading.Event | None, optional
+            Allows canceling the process mid-way.
+
+        Returns
+        -------
+        tuple[list[dict], str | None]
+            Transcription segments and detected language code.
         """
         transcripts = []
         detected_language = None
@@ -90,24 +122,53 @@ class Transcriber:
 
                 # Update progress
                 if progress_callback:
-                    progress_callback((idx + 1) / total_chunks * 100, idx + 1, total_chunks)
+                    progress_callback(
+                        (idx + 1) / total_chunks * 100,
+                        idx + 1,
+                        total_chunks,
+                        stage="Transcription"
+                    )
 
             except Exception as e:
                 logger.error("Whisper transcription error: %s", e)
-                raise Exception(f"Whisper transcription error: {e}")
+                msg = str(e)
+                if "Failed to load audio" in msg:
+                    msg = (
+                        "Failed to load audio. The file may use an unsupported "
+                        "codec or be corrupted."
+                    )
+                raise Exception(f"Whisper transcription error: {msg}")
 
         return transcripts, detected_language
 
-    def convert_to_audio(self, file_path):
+    def convert_to_audio(self, file_path, out_dir='downloads'):
+        """Convert a media file to 16 kHz mono WAV for Whisper.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the source media file.
+        out_dir : str, optional
+            Directory for the converted file, defaults to ``'downloads'``.
+
+        Returns
+        -------
+        str
+            Path to the converted WAV file.
         """
-        Converts the given audio/video file to MP3 format.
-        """
-        audio_path = os.path.join('downloads', 'temp_audio.mp3')
+        audio_path = os.path.join(out_dir, 'temp_audio.wav')
         try:
             (
                 ffmpeg
                 .input(file_path)
-                .output(audio_path, format='mp3', acodec='libmp3lame', loglevel="error")
+                .output(
+                    audio_path,
+                    format='wav',
+                    acodec='pcm_s16le',
+                    ac=1,
+                    ar=16000,
+                    loglevel='error',
+                )
                 .overwrite_output()
                 .run()
             )

@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 from tkinter import messagebox
+from pathlib import Path
 
 from .logger import get_logger
 
@@ -20,4 +21,10 @@ def open_output_folder(file_path):
     except Exception as e:
         logger.error("Failed to open directory: %s", e)
         messagebox.showerror("Error", f"Failed to open directory:\n{e}")
+
+
+def is_whisper_model_installed(variant: str) -> bool:
+    """Return True if the specified Whisper model file exists locally."""
+    cache_dir = Path.home() / ".cache" / "whisper"
+    return (cache_dir / f"{variant}.pt").is_file()
 

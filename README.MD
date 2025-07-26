@@ -10,7 +10,10 @@ TranscribeMonkey is a desktop application. It allows users to download, transcri
 - **Translation**: Translate transcriptions into various target languages using Google Translate.
 - **SRT Formatting**: Generates `.srt` subtitle files for compatibility with video players.
 - **Progress Display**: Displays progress for download, transcription, and translation tasks, including ETAs.
-- **Detailed Progress**: Shows chunk counts and translation progress for better feedback.
+- **Detailed Progress**: Displays chunk creation, transcription, and translation progress with stage-specific updates.
+- **Automatic Conversion**: Converts input audio to 16 kHz mono WAV for optimal AI analysis.
+- **System Status**: Window focuses on launch and, when enabled, shows CUDA, Whisper model, and translation availability. The Whisper indicator turns red if the selected model is not installed.
+- **Resizable Settings**: The settings window is larger and can be resized so all options fit comfortably.
 - **Stop Button**: Cancel ongoing downloads or transcriptions safely.
 
 ## Requirements
@@ -65,7 +68,8 @@ Dependencies include:
    - **General Settings**:
      - `chunk_length`: Length of audio chunks in seconds.
      - `model_variant`: Whisper model to use (e.g., `tiny`, `base`, `large`).
-     - `delete_temp_files`: Whether to delete temporary files after processing.
+   - `delete_temp_files`: Whether to delete temporary files after processing.
+   - `show_system_status`: Toggle display of GPU, Whisper, and translator availability.
 
    - **Language Options**:
      - `language`: Language for transcription or set to "Automatic Detection".
@@ -122,6 +126,9 @@ A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings.j
 
 **Q: Where can I find my output files?**
 A: Once processing is complete, the output files are saved in the directory specified under `output_directory` in the settings.
+
+**Q: I get a "Failed to load audio" error. What does it mean?**
+A: The app attempts to convert unsupported files to a standard WAV format automatically. If conversion fails, try converting the file manually or ensure FFmpeg is installed.
 
 **Q: Why isn't the progress bar showing the model download progress?**
 A: Currently, the model download step is not reflected in the progress bar. This feature is planned for future updates.

@@ -6,5 +6,6 @@
     "output_directory": "output",
     "delete_temp_files": true,
     "translate": false,
-    "target_language": "Dutch"
+    "target_language": "Dutch",
+    "show_system_status": true
 }
