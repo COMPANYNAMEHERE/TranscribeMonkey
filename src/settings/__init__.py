@@ -1,1 +1,1 @@
-from .options import *
+from .settings import *

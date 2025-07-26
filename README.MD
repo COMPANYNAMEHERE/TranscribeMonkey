@@ -64,7 +64,7 @@ Dependencies include:
 
 ## Setup
 
-1. **Configure Settings**: Modify `settings/options.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
+1. **Configure Settings**: Modify `settings/settings.json` as needed. You can find an example [here](settings_example.json) or refer to the snippet below, e.g., `"chunk_length": 30` to set the audio chunk length to 30 seconds:
 
    - **General Settings**:
      - `chunk_length`: Length of audio chunks in seconds.
@@ -109,21 +109,21 @@ python main.py
 - `resources/` stores static files such as `icon.png`
 - `tests/` includes unit tests
 - `main.py` is the entry point
-- `settings/options.json` holds user configuration
+- `settings/settings.json` holds user configuration
 
 ## FAQ / Help
 
 **Q: How do I change the output file format?**
-A: Modify the `output_format` field in `settings/options.json` to change the output file format. Supported formats are `srt`, `vtt`, and `txt`.
+A: Modify the `output_format` field in `settings/settings.json` to change the output file format. Supported formats are `srt`, `vtt`, and `txt`.
 
 **Q: The app is not detecting my audio language correctly. What should I do?**
-A: Specify the correct language in the `language` setting under `settings/options.json`. If set to "Automatic Detection", Whisper will attempt to detect the language, but specifying it can improve accuracy.
+A: Specify the correct language in the `language` setting under `settings/settings.json`. If set to "Automatic Detection", Whisper will attempt to detect the language, but specifying it can improve accuracy.
 
 **Q: What should I do if my output directory is inaccessible?**
-A: Ensure that the output directory specified in `settings/options.json` exists and that you have the necessary permissions to write to it.
+A: Ensure that the output directory specified in `settings/settings.json` exists and that you have the necessary permissions to write to it.
 
 **Q: Can I use a different Whisper model variant?**
-A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings/options.json` under `model_variant` to suit your needs.
+A: Yes, specify the model variant (`tiny`, `base`, `large`, etc.) in `settings/settings.json` under `model_variant` to suit your needs.
 
 **Q: Where can I find my output files?**
 A: Once processing is complete, the output files are saved in the directory specified under `output_directory` in the settings.

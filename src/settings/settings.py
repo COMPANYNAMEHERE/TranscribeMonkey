@@ -1,4 +1,4 @@
-"""Load and save user configuration options."""
+"""Load and save user configuration settings."""
 
 import json
 import os
@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 
 # Path to the settings file where user configurations are saved
 # Path to the settings file located alongside this module
-SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'options.json')
+SETTINGS_FILE = os.path.join(os.path.dirname(__file__), 'settings.json')
 
 # Default settings used if no settings file is found
 DEFAULT_SETTINGS = {
