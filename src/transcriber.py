@@ -16,6 +16,7 @@ class Transcriber:
         # Suppress the FutureWarning from Whisper regarding torch.load
         warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
         
+        self.model_variant = model_variant
         self.model = whisper.load_model(model_variant)
 
     def get_audio_duration(self, audio_path):
