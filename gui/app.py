@@ -79,10 +79,16 @@ class TranscribeMonkeyGUI:
 
     def create_widgets(self):
         """Create and layout all widgets in the main window."""
-        # Status indicators at the top right
-        self.status_frame = tk.Frame(self.root)
+        self.root.columnconfigure(0, weight=1)
+
+        # ---------- Top Frame ----------
+        top = ttk.Frame(self.root, padding=5)
+        top.grid(row=0, column=0, sticky="ew")
+        top.columnconfigure(0, weight=1)
+
+        self.status_frame = ttk.Frame(top)
         if self.settings.get('show_system_status', True):
-            self.status_frame.pack(anchor='ne', pady=5, padx=5)
+            self.status_frame.grid(row=0, column=0, sticky="e")
         self.cuda_status = tk.Label(self.status_frame, text="")
         self.cuda_status.pack(side='right', padx=5)
         self.translate_status = tk.Label(self.status_frame, text="")
@@ -90,43 +96,56 @@ class TranscribeMonkeyGUI:
         self.whisper_status = tk.Label(self.status_frame, text="")
         self.whisper_status.pack(side='right', padx=5)
 
-        # YouTube URL Entry
-        self.url_label = tk.Label(self.root, text="Enter YouTube URL:")
-        self.url_label.pack(pady=(10, 0))
+        self.settings_button = ttk.Button(top, text="Settings", command=self.open_settings)
+        self.settings_button.grid(row=0, column=1, padx=5)
 
-        self.url_entry = tk.Entry(self.root, width=60)
-        self.url_entry.pack(pady=5)
+        # ---------- Notebook ----------
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.root.rowconfigure(1, weight=1)
 
-        self.download_button = tk.Button(self.root, text="Download and Transcribe from YouTube", command=self.download_from_youtube)
-        self.download_button.pack(pady=5)
+        youtube_tab = ttk.Frame(self.notebook)
+        file_tab = ttk.Frame(self.notebook)
+        self.notebook.add(youtube_tab, text="YouTube")
+        self.notebook.add(file_tab, text="File")
 
-        # Separator
-        separator = ttk.Separator(self.root, orient='horizontal')
-        separator.pack(fill='x', pady=10)
+        # ----- YouTube Tab -----
+        youtube_tab.columnconfigure(1, weight=1)
+        ttk.Label(youtube_tab, text="YouTube URL:").grid(row=0, column=0, pady=5, padx=5, sticky="e")
+        self.url_entry = ttk.Entry(youtube_tab)
+        self.url_entry.grid(row=0, column=1, pady=5, padx=5, sticky="ew")
+        self.download_button = ttk.Button(
+            youtube_tab,
+            text="Download and Transcribe",
+            command=self.download_from_youtube,
+        )
+        self.download_button.grid(row=1, column=0, columnspan=2, pady=5)
 
-        # File Selection
-        self.file_button = tk.Button(self.root, text="Browse Files to Transcribe", command=self.open_file)
-        self.file_button.pack(pady=5)
+        # ----- File Tab -----
+        file_tab.columnconfigure(1, weight=1)
+        ttk.Label(file_tab, text="Selected File:").grid(row=0, column=0, pady=5, padx=5, sticky="e")
+        self.selected_file_var = tk.StringVar(value="No file selected")
+        self.file_label = ttk.Label(file_tab, textvariable=self.selected_file_var)
+        self.file_label.grid(row=0, column=1, pady=5, padx=5, sticky="w")
+        self.file_button = ttk.Button(file_tab, text="Browse", command=self.open_file)
+        self.file_button.grid(row=1, column=0, columnspan=2, pady=5)
 
-        # Settings Button
-        self.settings_button = tk.Button(self.root, text="Settings", command=self.open_settings)
-        self.settings_button.pack(pady=5)
+        # ---------- Bottom Frame ----------
+        bottom = ttk.Frame(self.root, padding=(10, 5))
+        bottom.grid(row=2, column=0, sticky="ew")
+        bottom.columnconfigure(0, weight=1)
 
-        # Progress Bar
-        self.progress = ttk.Progressbar(self.root, orient='horizontal', length=400, mode='determinate')
-        self.progress.pack(pady=10)
+        self.progress = ttk.Progressbar(bottom, orient='horizontal', mode='determinate')
+        self.progress.grid(row=0, column=0, sticky="ew", pady=5)
 
-        # Stop Button
-        self.stop_button = tk.Button(self.root, text="Stop", command=self.stop_process, state='disabled')
-        self.stop_button.pack(pady=5)
+        self.stop_button = ttk.Button(bottom, text="Stop", command=self.stop_process, state='disabled')
+        self.stop_button.grid(row=0, column=1, padx=5)
 
-        # Status Label
-        self.status_label = tk.Label(self.root, text="")
-        self.status_label.pack(pady=5)
+        self.status_label = ttk.Label(bottom, text="")
+        self.status_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(2, 0))
 
-        # ETA and Language Label
-        self.eta_lang_label = tk.Label(self.root, text="ETA: N/A | Language: N/A")
-        self.eta_lang_label.pack(pady=(0, 10))
+        self.eta_lang_label = ttk.Label(bottom, text="ETA: N/A | Language: N/A")
+        self.eta_lang_label.grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 5))
 
     def check_system_status(self):
         """Update status indicators for CUDA, Whisper, and translation."""
@@ -182,6 +201,7 @@ class TranscribeMonkeyGUI:
             filetypes=[("Audio Files", "*.mp3 *.wav *.m4a *.flac"), ("Video Files", "*.mp4 *.mkv *.avi *.mov"), ("All Files", "*.*")]
         )
         if file_path:
+            self.selected_file_var.set(os.path.basename(file_path))
             self.start_task()
             threading.Thread(target=self.process_file, args=(file_path,), daemon=True).start()
 
