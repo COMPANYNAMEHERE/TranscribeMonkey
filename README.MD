@@ -141,6 +141,8 @@ A: Currently, the model download step is not reflected in the progress bar. This
 - [ ] Pause and resume downloads and transcriptions
 - [ ] Save a persistent log of completed tasks
 - [ ] Write a detailed user manual with screenshots
+- [ ] Multiple speaker recognition
+
 
 ## Logging
 

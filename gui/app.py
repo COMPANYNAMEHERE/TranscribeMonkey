@@ -89,11 +89,11 @@ class TranscribeMonkeyGUI:
         self.status_frame = ttk.Frame(top)
         if self.settings.get('show_system_status', True):
             self.status_frame.grid(row=0, column=0, sticky="e")
-        self.cuda_status = ttk.Label(self.status_frame, text="")
+        self.cuda_status = tk.Label(self.status_frame, text="")
         self.cuda_status.pack(side='right', padx=5)
-        self.translate_status = ttk.Label(self.status_frame, text="")
+        self.translate_status = tk.Label(self.status_frame, text="")
         self.translate_status.pack(side='right', padx=5)
-        self.whisper_status = ttk.Label(self.status_frame, text="")
+        self.whisper_status = tk.Label(self.status_frame, text="")
         self.whisper_status.pack(side='right', padx=5)
 
         self.settings_button = ttk.Button(top, text="Settings", command=self.open_settings)

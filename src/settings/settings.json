@@ -1,3 +1,14 @@
 {
-    "chunk_length": 10
+    "chunk_length": 10,
+    "model_variant": "medium",
+    "language": "Automatic Detection",
+    "output_format": "srt",
+    "output_directory": "output",
+    "delete_temp_files": true,
+    "translate": true,
+    "target_language": "English",
+    "show_system_status": true,
+    "normalize_audio": true,
+    "reduce_noise": false,
+    "trim_silence": false
 }
