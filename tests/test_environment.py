@@ -65,14 +65,28 @@ World
 
 class TestTranslator(unittest.TestCase):
     """Tests for the Translator class using mocks."""
-
+    @patch('processor.translator.MyMemoryTranslator')
     @patch('processor.translator.GoogleTranslator')
-    def test_translate_text(self, mock_google):
+    def test_translate_text_primary(self, mock_google, mock_memory):
+        """Use Google translator when available."""
         mock_instance = mock_google.return_value
         mock_instance.translate.return_value.text = 'Hola'
         tr = Translator()
         result = tr.translate_text('Hello', 'es')
         mock_instance.translate.assert_called_once_with('Hello', dest='es')
+        mock_memory.assert_not_called()
+        self.assertEqual(result, 'Hola')
+
+    @patch('processor.translator.MyMemoryTranslator')
+    @patch('processor.translator.GoogleTranslator')
+    def test_translate_text_fallback(self, mock_google, mock_memory):
+        """Fallback to MyMemory translator on Google failure."""
+        mock_google.return_value.translate.side_effect = Exception('fail')
+        mock_memory.return_value.translate.return_value = 'Hola'
+        tr = Translator(retries=1, retry_delay=0)
+        result = tr.translate_text('Hello', 'es')
+        mock_memory.assert_called_once_with(source='auto', target='es')
+        mock_memory.return_value.translate.assert_called_once_with('Hello')
         self.assertEqual(result, 'Hola')
 
 

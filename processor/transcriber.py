@@ -3,6 +3,7 @@ import whisper
 import ffmpeg
 import os
 import warnings
+import torch
 
 from src.logger import get_logger
 
@@ -12,12 +13,23 @@ logger = get_logger(__name__)
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 class Transcriber:
+    """Handle audio conversion and transcription using Whisper."""
+
     def __init__(self, model_variant='base'):
+        """Initialize the transcriber with hardware acceleration when possible."""
         # Suppress the FutureWarning from Whisper regarding torch.load
         warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
-        
+
         self.model_variant = model_variant
-        self.model = whisper.load_model(model_variant)
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+        logger.info("Loading Whisper model %s on %s", model_variant, device)
+        self.model = whisper.load_model(model_variant, device=device)
+        self.device = device
 
     def get_audio_duration(self, audio_path):
         """
