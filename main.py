@@ -1,4 +1,5 @@
-# main.py
+"""Application entry point for TranscribeMonkey."""
+
 import tkinter as tk
 from gui import TranscribeMonkeyGUI
 
