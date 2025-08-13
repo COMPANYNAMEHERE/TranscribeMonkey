@@ -1,20 +1,27 @@
-# downloader.py
-from yt_dlp import YoutubeDL
+"""YouTube audio downloading helpers.
+
+Provides a :class:`Downloader` class for fetching audio streams and
+converting them to MP3 files while reporting progress.
+"""
+
 import os
 import socket
+from yt_dlp import YoutubeDL
 
 from src.logger import get_logger
 
 logger = get_logger(__name__)
 
 class DownloaderError(Exception):
-    pass
+    """Base exception for downloader failures."""
+
 
 class NetworkError(DownloaderError):
-    pass
+    """Raised when a network error occurs during download."""
+
 
 class AudioConversionError(DownloaderError):
-    pass
+    """Raised when the downloaded audio cannot be converted."""
 
 class Downloader:
     """Utility class for downloading YouTube audio."""

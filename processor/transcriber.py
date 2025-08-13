@@ -1,9 +1,15 @@
-# transcriber.py
-import whisper
-import ffmpeg
+"""Audio transcription tools built on Whisper.
+
+Includes utilities for loading models, splitting audio into chunks and
+performing transcription with optional hardware acceleration.
+"""
+
 import os
 import warnings
+
+import ffmpeg
 import torch
+import whisper
 
 from src.logger import get_logger
 

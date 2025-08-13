@@ -1,4 +1,5 @@
-# translator.py
+"""Translation utilities with retry and fallback providers."""
+
 import time
 
 from googletrans import Translator as GoogleTranslator

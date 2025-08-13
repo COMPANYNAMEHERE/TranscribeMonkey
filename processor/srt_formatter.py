@@ -1,4 +1,4 @@
-# srt_formatter.py
+"""Subtitle parsing and formatting helpers."""
 
 import re
 from datetime import timedelta

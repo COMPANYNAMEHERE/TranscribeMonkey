@@ -1,4 +1,8 @@
-# gui.py
+"""Tkinter-based GUI for TranscribeMonkey.
+
+Handles user interactions for downloading, transcribing and translating audio
+or video content."""
+
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import threading
@@ -9,7 +13,8 @@ from processor.transcriber import Transcriber
 from processor.translator import Translator
 from src.settings import load_settings
 from gui.settings_gui import open_settings as open_settings_window
-from src.utils import open_output_folder, is_whisper_model_installed
+from src.file_utils import open_output_folder
+from src.whisper_utils import is_whisper_model_installed
 from googletrans import LANGUAGES
 from processor.srt_formatter import correct_srt_format
 from src.logger import get_logger

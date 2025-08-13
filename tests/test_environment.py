@@ -1,3 +1,5 @@
+"""Unit tests for settings and text processing utilities."""
+
 import os
 import tempfile
 import unittest
