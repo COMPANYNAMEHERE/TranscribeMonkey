@@ -3,6 +3,7 @@ import whisper
 import ffmpeg
 import os
 import warnings
+import torch
 
 from src.logger import get_logger
 
@@ -12,12 +13,56 @@ logger = get_logger(__name__)
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 class Transcriber:
+    """Handle audio conversion and transcription using Whisper.
+
+    Notes
+    -----
+    Performance on Apple Silicon (M1/M2) is still maturing:
+
+    - Depending on your PyTorch and macOS versions, some Whisper models
+      may run **slower on MPS than on CPU**. Benchmark both backends and
+      choose the faster one for your setup.
+    - Upgrading to the latest releases of PyTorch and macOS usually
+      improves MPS stability and speed. See the PyTorch `mps` notes for
+      details.
+    - Adjust ``chunk_length`` in :meth:`split_audio` or the ``batch_size``
+      parameter of ``whisper.transcribe`` to trade memory usage for
+      throughput.
+
+    References
+    ----------
+    - Whisper performance: https://github.com/openai/whisper#performance
+    - PyTorch MPS documentation: https://pytorch.org/docs/stable/notes/mps.html
+    """
+
     def __init__(self, model_variant='base'):
+        """Initialize the transcriber with hardware acceleration when possible."""
         # Suppress the FutureWarning from Whisper regarding torch.load
         warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
-        
+
         self.model_variant = model_variant
-        self.model = whisper.load_model(model_variant)
+
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif (
+            hasattr(torch.backends, "mps")
+            and torch.backends.mps.is_available()
+            and torch.backends.mps.is_built()
+        ):
+            device = "mps"
+        else:
+            device = "cpu"
+
+        logger.info("Loading Whisper model %s on %s", model_variant, device)
+        try:
+            self.model = whisper.load_model(model_variant, device=device)
+            self.device = device
+        except RuntimeError as exc:
+            logger.warning(
+                "Failed to load model on %s (%s); falling back to CPU", device, exc
+            )
+            self.model = whisper.load_model(model_variant, device="cpu")
+            self.device = "cpu"
 
     def get_audio_duration(self, audio_path):
         """
