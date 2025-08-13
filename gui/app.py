@@ -383,7 +383,8 @@ class TranscribeMonkeyGUI:
                 chunk_paths,
                 language=language,
                 progress_callback=self.update_transcription_progress,
-                stop_event=self.stop_event
+                stop_event=self.stop_event,
+                chunk_length=chunk_length,
             )
 
             if self.stop_event.is_set():
