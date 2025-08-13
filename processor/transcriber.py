@@ -193,8 +193,8 @@ class Transcriber:
 
         return transcripts, detected_language
 
+    @staticmethod
     def convert_to_audio(
-        self,
         file_path,
         out_dir='downloads',
         *,
