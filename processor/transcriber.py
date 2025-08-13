@@ -132,9 +132,15 @@ class Transcriber:
 
         return chunk_paths
 
-    def transcribe_chunks(self, chunk_paths, language=None,
-                          progress_callback=None, stop_event=None):
-        """Transcribe a list of audio chunks.
+    def transcribe_chunks(
+        self,
+        chunk_paths,
+        language=None,
+        progress_callback=None,
+        stop_event=None,
+        chunk_length=15,
+    ):
+        """Transcribe a list of audio chunks and merge timestamps.
 
         Parameters
         ----------
@@ -146,11 +152,13 @@ class Transcriber:
             Called with ``(percent, idx, total, stage)`` to report progress.
         stop_event : threading.Event | None, optional
             Allows canceling the process mid-way.
+        chunk_length : int | float, optional
+            Length in seconds of each chunk; used to offset timestamps.
 
         Returns
         -------
         tuple[list[dict], str | None]
-            Transcription segments and detected language code.
+            Transcription segments with absolute timestamps and detected language code.
         """
         transcripts = []
         detected_language = None
@@ -165,6 +173,10 @@ class Transcriber:
                 # Transcribe the chunk
                 result = self.model.transcribe(chunk, language=language_param)
                 segments = result.get('segments', [])
+                offset = idx * chunk_length
+                for segment in segments:
+                    segment['start'] += offset
+                    segment['end'] += offset
                 transcripts.extend(segments)
 
                 # Detect language after the first chunk if automatic
@@ -193,8 +205,8 @@ class Transcriber:
 
         return transcripts, detected_language
 
+    @staticmethod
     def convert_to_audio(
-        self,
         file_path,
         out_dir='downloads',
         *,

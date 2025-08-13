@@ -14,7 +14,10 @@ from processor.translator import Translator
 from src.settings import load_settings
 from gui.settings_gui import open_settings as open_settings_window
 from src.file_utils import open_output_folder
-from src.whisper_utils import is_whisper_model_installed
+from src.whisper_utils import (
+    download_whisper_model,
+    is_whisper_model_installed,
+)
 from googletrans import LANGUAGES
 from processor.srt_formatter import correct_srt_format
 from src.logger import get_logger
@@ -34,6 +37,7 @@ class TranscribeMonkeyGUI:
         self.settings = load_settings()
         self.transcriber = None
         self.stop_event = threading.Event()
+        self.model_downloading = False
         self.setup_window()  # Setup window title and icon
         self.create_widgets()
         self.check_system_status()
@@ -206,6 +210,29 @@ class TranscribeMonkeyGUI:
         self.eta_lang_label.config(text=msg)
         self.root.update_idletasks()
 
+    def update_model_download_progress(self, percent, eta):
+        """Update GUI elements during model download."""
+        self.progress['value'] = percent
+        if eta is not None:
+            self.eta_lang_label.config(
+                text=f"ETA: {int(eta)} seconds | Language: N/A"
+            )
+        else:
+            self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
+        self.root.update_idletasks()
+
+    def download_model_with_progress(self, variant):
+        """Download Whisper model and report progress."""
+        def callback(percent, eta):
+            self.update_model_download_progress(percent, eta)
+        try:
+            download_whisper_model(variant, progress_callback=callback)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to download model:\n{e}")
+            self.stop_event.set()
+        finally:
+            self.model_downloading = False
+
     def get_transcriber(self):
         """Return a cached Transcriber instance for the selected model."""
         model_variant = self.settings.get('model_variant', 'base')
@@ -233,15 +260,30 @@ class TranscribeMonkeyGUI:
 
     def process_youtube(self, url):
         downloader = Downloader(progress_callback=self.update_progress, stop_event=self.stop_event)
+        model_variant = self.settings.get('model_variant', 'base')
+        model_thread = None
+        if not is_whisper_model_installed(model_variant):
+            self.model_downloading = True
+            self.status_label.config(text="Downloading model...")
+            self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
+            self.progress['value'] = 0
+            self.root.update_idletasks()
+            model_thread = threading.Thread(
+                target=self.download_model_with_progress,
+                args=(model_variant,),
+                daemon=True,
+            )
+            model_thread.start()
         try:
             audio_path = downloader.download_audio(url)
-            transcriber = self.get_transcriber()
-            audio_path = transcriber.convert_to_audio(
+            audio_path = Transcriber.convert_to_audio(
                 audio_path,
                 normalize_audio=self.settings.get('normalize_audio', True),
                 reduce_noise=self.settings.get('reduce_noise', False),
                 trim_silence=self.settings.get('trim_silence', False),
             )
+            if model_thread:
+                model_thread.join()
             self.status_label.config(text="Download and conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0
@@ -257,18 +299,35 @@ class TranscribeMonkeyGUI:
             self.progress['value'] = 0
             self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
         finally:
+            if model_thread:
+                model_thread.join()
             self.end_task()
 
     def process_file(self, file_path):
-        transcriber = self.get_transcriber()
+        model_variant = self.settings.get('model_variant', 'base')
+        model_thread = None
+        if not is_whisper_model_installed(model_variant):
+            self.model_downloading = True
+            self.status_label.config(text="Downloading model...")
+            self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
+            self.progress['value'] = 0
+            self.root.update_idletasks()
+            model_thread = threading.Thread(
+                target=self.download_model_with_progress,
+                args=(model_variant,),
+                daemon=True,
+            )
+            model_thread.start()
         try:
             # Convert to optimal format (16 kHz mono WAV)
-            audio_path = transcriber.convert_to_audio(
+            audio_path = Transcriber.convert_to_audio(
                 file_path,
                 normalize_audio=self.settings.get('normalize_audio', True),
                 reduce_noise=self.settings.get('reduce_noise', False),
                 trim_silence=self.settings.get('trim_silence', False),
             )
+            if model_thread:
+                model_thread.join()
             self.status_label.config(text="Conversion complete. Starting transcription...")
             self.eta_lang_label.config(text="ETA: Calculating... | Language: N/A")
             self.progress['value'] = 0
@@ -284,6 +343,8 @@ class TranscribeMonkeyGUI:
             self.progress['value'] = 0
             self.eta_lang_label.config(text="ETA: N/A | Language: N/A")
         finally:
+            if model_thread:
+                model_thread.join()
             self.end_task()
 
     def transcribe_audio(self, audio_path, base_name):
@@ -322,7 +383,8 @@ class TranscribeMonkeyGUI:
                 chunk_paths,
                 language=language,
                 progress_callback=self.update_transcription_progress,
-                stop_event=self.stop_event
+                stop_event=self.stop_event,
+                chunk_length=chunk_length,
             )
 
             if self.stop_event.is_set():
@@ -427,7 +489,7 @@ class TranscribeMonkeyGUI:
         
         :param d: Dictionary containing download status information.
         """
-        if self.stop_event.is_set():
+        if self.stop_event.is_set() or self.model_downloading:
             return
         if d['status'] == 'downloading':
             total_bytes = d.get('total_bytes') or d.get('total_bytes_estimate')
