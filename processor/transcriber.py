@@ -13,7 +13,27 @@ logger = get_logger(__name__)
 os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 class Transcriber:
-    """Handle audio conversion and transcription using Whisper."""
+    """Handle audio conversion and transcription using Whisper.
+
+    Notes
+    -----
+    Performance on Apple Silicon (M1/M2) is still maturing:
+
+    - Depending on your PyTorch and macOS versions, some Whisper models
+      may run **slower on MPS than on CPU**. Benchmark both backends and
+      choose the faster one for your setup.
+    - Upgrading to the latest releases of PyTorch and macOS usually
+      improves MPS stability and speed. See the PyTorch `mps` notes for
+      details.
+    - Adjust ``chunk_length`` in :meth:`split_audio` or the ``batch_size``
+      parameter of ``whisper.transcribe`` to trade memory usage for
+      throughput.
+
+    References
+    ----------
+    - Whisper performance: https://github.com/openai/whisper#performance
+    - PyTorch MPS documentation: https://pytorch.org/docs/stable/notes/mps.html
+    """
 
     def __init__(self, model_variant='base'):
         """Initialize the transcriber with hardware acceleration when possible."""
