@@ -21,15 +21,28 @@ class Transcriber:
         warnings.filterwarnings("ignore", category=FutureWarning, module="whisper")
 
         self.model_variant = model_variant
+
         if torch.cuda.is_available():
             device = "cuda"
-        elif torch.backends.mps.is_available():
+        elif (
+            hasattr(torch.backends, "mps")
+            and torch.backends.mps.is_available()
+            and torch.backends.mps.is_built()
+        ):
             device = "mps"
         else:
             device = "cpu"
+
         logger.info("Loading Whisper model %s on %s", model_variant, device)
-        self.model = whisper.load_model(model_variant, device=device)
-        self.device = device
+        try:
+            self.model = whisper.load_model(model_variant, device=device)
+            self.device = device
+        except RuntimeError as exc:
+            logger.warning(
+                "Failed to load model on %s (%s); falling back to CPU", device, exc
+            )
+            self.model = whisper.load_model(model_variant, device="cpu")
+            self.device = "cpu"
 
     def get_audio_duration(self, audio_path):
         """
