@@ -1,3 +1,5 @@
+"""Setup script for creating a development environment."""
+
 import os
 import shutil
 import subprocess

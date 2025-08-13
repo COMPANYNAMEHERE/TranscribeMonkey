@@ -1,3 +1,5 @@
+"""Centralized logging configuration for TranscribeMonkey."""
+
 import logging
 import os
 

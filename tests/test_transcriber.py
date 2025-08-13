@@ -1,3 +1,5 @@
+"""Tests for the Transcriber class."""
+
 import unittest
 from unittest.mock import patch, call
 
@@ -5,7 +7,7 @@ from processor.transcriber import Transcriber
 
 
 class TestTranscriber(unittest.TestCase):
-    """Tests for the Transcriber class."""
+    """Ensure transcription logic selects the proper device."""
 
     @patch('processor.transcriber.whisper.load_model')
     @patch('processor.transcriber.torch')

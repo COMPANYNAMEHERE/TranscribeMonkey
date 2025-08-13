@@ -8,6 +8,8 @@ the following conventions.
 - Follow **PEP 8** with 4‑space indentation and `lower_snake_case` for
   functions.
 - Provide docstrings for public classes and functions.
+- Begin each Python module with a brief top-level docstring summarizing its
+  purpose.
 - Add any third‑party packages to `requirements.txt`.
 
 ## Repository Layout
