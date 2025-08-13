@@ -30,7 +30,7 @@ pip install -r requirements.txt
 Alternatively, run the setup script to automate this process:
 
 ```bash
-python setup_env.py
+./setup_env.sh
 ```
 
 Dependencies include:
@@ -52,7 +52,7 @@ Dependencies include:
 2. **Run the setup script** (creates a conda environment and installs dependencies):
 
    ```bash
-   python setup_env.py
+   ./setup_env.sh
    ```
 
 3. **Start the program**:
@@ -90,9 +90,9 @@ python main.py
 ## Usage
 
 1. Launch the app with `python main.py`.
-2. Enter a YouTube URL or select a local file to transcribe.
+2. Use the tabs to either enter a YouTube URL or browse for a local file.
 3. Configure settings (e.g., chunk length, output directory).
-4. Click "Download and Transcribe" or "Transcribe File".
+4. Click the button on each tab to begin transcription.
 5. Note that the transcription process may take some time depending on the file size, audio quality, and your system's performance. Typically, it may take anywhere from a few minutes for short files to an hour or more for longer recordings, especially on older hardware.
 6. Once processing is complete, you can find the output files in the directory specified under `output_directory` in the settings. Verify that the output directory path is correct and accessible to avoid any issues.
 
