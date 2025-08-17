@@ -1,5 +1,9 @@
-"""GUI package exposing the main application window."""
+"""Node.js-based frontend placeholder for TranscribeMonkey.
 
-from .app import TranscribeMonkeyGUI
+This package previously exposed the Tkinter GUI. It now serves as a placeholder
+while the project transitions to a Node.js/React interface located in the same
+`gui` directory.
+"""
 
-__all__ = ["TranscribeMonkeyGUI"]
+# No Python GUI components remain; the React code lives in `App.jsx`.
+__all__ = []

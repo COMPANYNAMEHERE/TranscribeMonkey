@@ -24,3 +24,6 @@ downloads/
 # Temporary files
 *.tmp
 *.temp
+
+# Node dependencies
+gui/node_modules/
