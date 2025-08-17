@@ -1,6 +1,6 @@
 # TranscribeMonkey
 
-TranscribeMonkey is a desktop application. It allows users to download, transcribe, and translate audio files. It is ideal for content creators, researchers, and educators who need to process audio files efficiently. TranscribeMonkey supports audio from YouTube and local files, using OpenAI's Whisper for transcription and Google Translate for optional translation. Built with a Tkinter GUI, it processes audio in smaller, manageable chunks and offers various transcription options.
+TranscribeMonkey is a desktop application. It allows users to download, transcribe, and translate audio files. It is ideal for content creators, researchers, and educators who need to process audio files efficiently. TranscribeMonkey supports audio from YouTube and local files, using OpenAI's Whisper for transcription and Google Translate for optional translation. Featuring a Node.js/React frontend, it processes audio in smaller, manageable chunks and offers various transcription options.
 
 ## Features
 
@@ -55,11 +55,12 @@ Dependencies include:
    python setup_env.py
    ```
 
-3. **Start the program**:
+3. **Start the frontend**:
 
    ```bash
-   conda activate transcribemonkey
-   python main.py
+   cd gui
+   npm install
+   npm start
    ```
 
 ## Setup
@@ -84,12 +85,13 @@ Dependencies include:
 2. **Run the App**:
 
 ```bash
-python main.py
+cd gui
+npm start
 ```
 
 ## Usage
 
-1. Launch the app with `python main.py`.
+1. Launch the app with `npm start` inside `gui`.
 2. Enter a YouTube URL or select a local file to transcribe.
 3. Configure settings (e.g., chunk length, output directory).
 4. Click "Download and Transcribe" or "Transcribe File".
@@ -108,10 +110,10 @@ python main.py
   - `transcriber.py` – audio splitting and Whisper integration
   - `translator.py` – translation utilities
   - `srt_formatter.py` – subtitle formatting helpers
-- `gui/` – Tkinter interface modules
-  - `app.py` – main GUI
-  - `settings_gui.py` – settings window
-  - `progress.py` – progress message formatting
+- `gui/` – Node.js/React frontend
+  - `App.jsx` – main React application
+  - `main.jsx` – React entry point
+  - `package.json` – frontend dependencies
 - `resources/` – static assets such as `icon.png`
 - `tests/` – unit tests
 - `main.py` – application entry point
